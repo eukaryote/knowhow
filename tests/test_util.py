@@ -1,5 +1,6 @@
 from knowhow.util import strip
 
+
 class mylist(list):
     pass
 
@@ -26,3 +27,4 @@ def test_strip_empties():
 
 def test_strip_lists():
     assert strip([1, ' ']) == [1, '']
+    assert strip(['ab  ', '  a  b  cx ']) == ['ab', 'a  b  cx']
