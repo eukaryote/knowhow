@@ -1,10 +1,6 @@
 from knowhow.util import strip
 
 
-class mylist(list):
-    pass
-
-
 def test_strip_none():
     assert strip(None) is None
 
@@ -18,13 +14,37 @@ def test_strip_int():
 
 
 def test_strip_empties():
+
+    class mylist(list):
+        pass
     for val in [(), [], mylist()]:
-        val_type_orig = type(val)
         new_val = strip(val)
         assert new_val == val
-        assert type(new_val) == val_type_orig
+        assert type(new_val) is type(val)
 
 
 def test_strip_lists():
     assert strip([1, ' ']) == [1, '']
     assert strip(['ab  ', '  a  b  cx ']) == ['ab', 'a  b  cx']
+
+
+def test_strip_mixed():
+    val = (' a ',
+           [3, '  b', 'd'],
+           {'a  ': [1, '  b']})
+    assert strip(val) == ('a', [3, 'b', 'd'], {'a  ': [1, 'b']})
+
+
+def test_custom_dict():
+
+    class mydict(dict):
+        pass
+
+    val = mydict(
+        a=mydict([('b', ' c ')]),
+        b=None,
+        c=(1, ' x ')
+    )
+    val_new = strip(val)
+    assert type(val_new) is type(val)
+    assert val_new == mydict(a=mydict(b='c'), b=None, c=(1, 'x'))
