@@ -1,4 +1,6 @@
 import os
+import json
+import pytz
 import tempfile
 from datetime import datetime
 
@@ -7,6 +9,7 @@ from whoosh.qparser import QueryParser
 
 import knowhow
 from knowhow.schema import SCHEMA, identifier
+from knowhow.util import json_serializer, parse_datetime
 
 
 INDEX_DIR = os.path.join(tempfile.gettempdir(), knowhow.__name__)
@@ -30,9 +33,11 @@ class Index:
         return self._ix
 
     def _add(self, writer, **kwargs):
+        _no_update = kwargs.pop('_no_update', False)
         kwargs = {k: strip(kwargs[k]) for k in kwargs}
         kwargs['id'] = identifier(kwargs)
-        kwargs['updated'] = datetime.utcnow()
+        if not _no_update:
+            kwargs['updated'] = datetime.now(pytz.utc)
         writer.update_document(**kwargs)
 
     def add(self, **kwargs):
@@ -53,6 +58,28 @@ class Index:
     def search(self, qs):
         parser = QueryParser('content', self.ix.schema)
         return self.query(parser.parse(qs))
+
+    def dump(self, fh):
+        # poor-man's json serialization, printing the enclosing container
+        # manually and dumping each doc individually; will have to take
+        # another approach to deserializing if ever dealing with large indexes
+        print('[', file=fh, end='')
+        try:
+            with self.ix.reader() as r:
+                count = 0
+                for docnum, docfiles in r.iter_docs():
+                    print(',\n' if count else '\n', file=fh, end='')
+                    json.dump(docfiles, fh, default=json_serializer)
+                    count += 1
+        finally:
+            print('\n]', file=fh)
+
+    def load(self, fh):
+        with self.ix.writer() as w:
+            assert w
+            for doc in json.load(fh):
+                doc['updated'] = parse_datetime(doc['updated'])
+                self._add(w, _no_update=True, **doc)
 
 
 def strip(val):

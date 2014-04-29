@@ -5,7 +5,7 @@
 Usage:
   add.py [-t TAG|--tag=TAG] TERM...
   add.py (-h | --help)
-  search.py --version
+  add.py --version
 
 Options:
   -h --help             Show this screen.
