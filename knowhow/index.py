@@ -7,7 +7,6 @@ from whoosh.qparser import QueryParser
 
 import knowhow
 from knowhow.schema import SCHEMA, identifier
-from knowhow.util import strip
 
 
 INDEX_DIR = os.path.join(tempfile.gettempdir(), knowhow.__name__)
@@ -31,9 +30,10 @@ class Index:
         return self._ix
 
     def _add(self, writer, **kwargs):
+        kwargs = {k: strip(kwargs[k]) for k in kwargs}
         kwargs['id'] = identifier(kwargs)
         kwargs['updated'] = datetime.utcnow()
-        writer.update_document(**strip(kwargs))
+        writer.update_document(**kwargs)
 
     def add(self, **kwargs):
         with self.ix.writer() as w:
@@ -53,3 +53,12 @@ class Index:
     def search(self, qs):
         parser = QueryParser('content', self.ix.schema)
         return self.query(parser.parse(qs))
+
+
+def strip(val):
+    if isinstance(val, str):
+        return val.strip()
+    try:
+        return list(filter(None, map(strip, val)))
+    except TypeError:
+        return val
