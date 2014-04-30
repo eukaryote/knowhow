@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Load knowhow repo from stdin JSON array.
+"""Load previously dumped `knowhow` repo from stdin JSON array.
 
 Usage:
   load.py

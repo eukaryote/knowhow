@@ -49,15 +49,19 @@ class Index:
             for doc in docs:
                 self._add(w, **doc)
 
-    def query(self, q):
+    def query(self, q, **kw):
         with self.ix.searcher() as s:
-            result = s.search(q)
+            result = s.search(q, **kw)
             print(len(result))
             return list(map(str, result))
 
-    def search(self, qs):
-        parser = QueryParser('content', self.ix.schema)
-        return self.query(parser.parse(qs))
+    def parse(self, qs):
+        return QueryParser('content', self.ix.schema).parse(qs)
+
+    def search(self, qs, **kw):
+        return self.query(self.parse(qs), **kw)
+        # parser = QueryParser('content', self.ix.schema)
+        # return self.query(parser.parse(qs))
 
     def dump(self, fh):
         # poor-man's json serialization, printing the enclosing container
@@ -76,7 +80,6 @@ class Index:
 
     def load(self, fh):
         with self.ix.writer() as w:
-            assert w
             for doc in json.load(fh):
                 doc['updated'] = parse_datetime(doc['updated'])
                 self._add(w, _no_update=True, **doc)

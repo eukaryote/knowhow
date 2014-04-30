@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Dump knowhow repo to stdout as JSON array.
+"""Dump `knowhow` repo to stdout as JSON array.
 
 Usage:
   dump.py
