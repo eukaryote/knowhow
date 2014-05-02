@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Show information about the `knowhow` index.
+"""Show information about the knowhow index.
 
 Usage:
   info.py

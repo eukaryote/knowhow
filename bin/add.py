@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Add (or update) a `knowhow` entry, optionally with one or more tags.
+"""Add (or update) a knowhow entry, optionally with one or more tags.
 
 Usage:
   add.py [-t TAG|--tag=TAG] TERM...

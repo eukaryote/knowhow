@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Search `knowhow` for entries matching tags and/or content keywords.
+"""Search knowhow for entries matching tags and/or content keywords.
 
 Usage:
   search.py [-t TAG|--tag=TAG] [KEYWORD]...
