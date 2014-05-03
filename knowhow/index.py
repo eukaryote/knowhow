@@ -12,12 +12,13 @@ from knowhow.schema import SCHEMA, identifier
 from knowhow.util import json_serializer, parse_datetime
 
 
-INDEX_DIR = os.path.join(tempfile.gettempdir(), knowhow.__name__)
-
-
 class Index:
 
-    def __init__(self, index_dir=INDEX_DIR):
+    def __init__(self, index_dir=None):
+        if not index_dir:
+            index_dir = os.environ.get('KNOWHOW_INDEX_DIR')
+        if not index_dir:
+            index_dir = os.path.join(tempfile.gettempdir(), knowhow.__name__)
         self.index_dir = index_dir
         self._ix = None
 
