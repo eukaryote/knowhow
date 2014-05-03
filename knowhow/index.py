@@ -1,24 +1,23 @@
 import os
 import json
 import pytz
-import tempfile
 from datetime import datetime
 
 from whoosh.index import create_in, open_dir
 from whoosh.qparser import QueryParser
 
-import knowhow
 from knowhow.schema import SCHEMA, identifier
-from knowhow.util import json_serializer, parse_datetime
+import knowhow.util as util
 
 
 class Index:
 
-    def __init__(self, index_dir=None):
+    def __init__(self, app_dir=None, index_dir=None):
+        if not app_dir:
+            app_dir = util.get_app_dir()
         if not index_dir:
-            index_dir = os.environ.get('KNOWHOW_INDEX_DIR')
-        if not index_dir:
-            index_dir = os.path.join(tempfile.gettempdir(), knowhow.__name__)
+            index_dir = util.get_data_dir(app_dir=app_dir)
+        self.app_dir = app_dir
         self.index_dir = index_dir
         self._ix = None
 
@@ -26,7 +25,7 @@ class Index:
         exists = os.path.exists(self.index_dir)
         if not exists or clear:
             if not exists:
-                os.mkdir(self.index_dir, mode=0o2755)
+                os.makedirs(self.index_dir, mode=0o2755)
             self._ix = create_in(self.index_dir, SCHEMA)
         else:
             self._ix = open_dir(self.index_dir)
@@ -77,7 +76,7 @@ class Index:
                 count = 0
                 for docnum, docfiles in reader.iter_docs():
                     print(',\n' if count else '\n', file=fh, end='')
-                    json.dump(docfiles, fh, default=json_serializer)
+                    json.dump(docfiles, fh, default=util.json_serializer)
                     count += 1
         finally:
             print('\n]', file=fh)
@@ -85,7 +84,7 @@ class Index:
     def load(self, fh):
         with self.ix.writer() as writer:
             for doc in json.load(fh):
-                doc['updated'] = parse_datetime(doc['updated'])
+                doc['updated'] = util.parse_datetime(doc['updated'])
                 self._add(writer, _no_update=True, **doc)
 
     def clear(self):
