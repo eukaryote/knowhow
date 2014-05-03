@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Access the knowhow knowledge repo.
+"""Run a knowhow command.
 
 Usage:
     knowhow [options] <command> [<args>...]
@@ -16,14 +16,12 @@ Commands:
     info      Show info about a knowhow repo
     load      Load a dumped export into a knowhow repo from STDIN
     dump      Dump a knowhow repo to STDOUT
-
-See 'knowhow help <command>' for more information on a specific command.
+    help      Show more information about a specific command
 """
 
 import sys
 import os
 
-from subprocess import call
 from docopt import docopt
 
 import knowhow
@@ -33,10 +31,11 @@ if __name__ == '__main__':
     args = docopt(__doc__, options_first=True, version=knowhow.__version__)
     knowhow_bin_dir = os.path.dirname(__file__)
     knowhow_bin = os.path.basename(__file__)
+    python = sys.executable
 
     def help(bin):
         script = os.path.join(knowhow_bin_dir, bin)
-        call([sys.executable, script, '--help'])
+        os.execl(python, python, script, '--help')
 
     if args['<command>'] in ['help', None]:
         bin = args['<args>'][0] if args['<args>'] else None
@@ -48,7 +47,8 @@ if __name__ == '__main__':
     else:
         script = os.path.join(knowhow_bin_dir, '%s.py' % args['<command>'])
         if os.path.exists(script):
-            call([sys.executable, script] + args['<args>'])
+            print([script] + args['<args>'])
+            os.execv(python, [python, script] + args['<args>'])
         else:
             print('doing last knowhow help')
             help('knowhow')
