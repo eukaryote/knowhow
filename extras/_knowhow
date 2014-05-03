@@ -1,0 +1,52 @@
+#compdef knowhow
+
+() {
+
+    local context state line
+    local -a _commands _command_args
+    typeset -A opt_args
+
+    _commands=(
+        "search:search a knowhow repo"
+        "add:add a snippet to a knowhow repo"
+        "dump:dump a knowhow repo to stdout"
+        "load:load a knowhow repo from stdin"
+        "info:show info about a knowhow repo"
+        "help:show help about a knowhow command"
+    )
+
+    if ! type knowhow &> /dev/null; then
+        _message "can't find knowhow script: check PATH"
+        return 1
+    fi
+
+    _arguments '*:: :-> command'
+
+    if (( CURRENT == 1)); then
+        _describe -t commands "mycommand" _commands
+        return 0
+    fi
+
+    case "$words[1]" in
+        search)
+            _command_args=(
+                '-t+:TAG[,TAG]*:'
+                '--tag+:TAG[,TAG]*'
+                '*:"search terms":'
+            )
+            ;;
+        add)
+            _command_args=(
+                '-t+:TAG[,TAG]*'
+                '--tag+:TAG[,TAG]*'
+                '*:"snippet to add":'
+            )
+            ;;
+    esac
+
+    _arguments ${_command_args} && return 0
+
+    return 1
+}
+
+## sublimeconf: filetype=shell
