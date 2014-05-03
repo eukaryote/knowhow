@@ -65,8 +65,6 @@ class Index:
 
     def search(self, qs, **kw):
         return self.query(self.parse(qs), **kw)
-        # parser = QueryParser('content', self.ix.schema)
-        # return self.query(parser.parse(qs))
 
     def dump(self, fh):
         # poor-man's json serialization, printing the enclosing container
