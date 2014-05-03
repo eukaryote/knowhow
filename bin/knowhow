@@ -11,12 +11,17 @@ Options:
     -V, --version       Show version.
 
 Commands:
-    search    Search a knowhow repo
-    add       Add a snippet to a knowhow repo
-    info      Show info about a knowhow repo
-    load      Load a dumped export into a knowhow repo from STDIN
-    dump      Dump a knowhow repo to STDOUT
-    help      Show more information about a specific command
+    search          Search a knowhow repo
+    add             Add a snippet to a knowhow repo
+    info            Show info about a knowhow repo
+    load            Load a dumped export into a knowhow repo from STDIN
+    dump            Dump a knowhow repo to STDOUT
+    help            Show more information about a specific command
+
+Environment:
+    KNOWHOW_HOME    Optional directory for knowhow conf and other storage
+    KNOWHOW_CONF    Optional file path containing knowhow configuration
+    KNOWHOW_DATA    Optional directory for knowhow index data
 """
 
 import sys
@@ -47,7 +52,6 @@ if __name__ == '__main__':
     else:
         script = os.path.join(knowhow_bin_dir, '%s.py' % args['<command>'])
         if os.path.exists(script):
-            print([script] + args['<args>'])
             os.execv(python, [python, script] + args['<args>'])
         help('knowhow')
 
