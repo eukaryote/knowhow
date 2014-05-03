@@ -49,8 +49,6 @@ if __name__ == '__main__':
         if os.path.exists(script):
             print([script] + args['<args>'])
             os.execv(python, [python, script] + args['<args>'])
-        else:
-            print('doing last knowhow help')
-            help('knowhow')
+        help('knowhow')
 
 ## sublimeconf: filetype=python
