@@ -4,6 +4,7 @@ import pytz
 from datetime import datetime
 
 from whoosh.index import create_in, open_dir
+from whoosh.query import Query
 from whoosh.qparser import QueryParser
 
 from knowhow.schema import SCHEMA, identifier
@@ -54,17 +55,15 @@ class Index:
             for doc in docs:
                 self._add(writer, **doc)
 
-    def query(self, q, **kw):
-        with self.ix.searcher() as searcher:
-            result = searcher.search(q, **kw)
-            print(len(result))
-            return list(map(str, result))
-
     def parse(self, qs):
         return QueryParser('content', self.ix.schema).parse(qs)
 
+    def _search(self, q, **kw):
+        assert isinstance(q, Query)
+        return Search(self.ix.searcher(), q, **kw)
+
     def search(self, qs, **kw):
-        return self.query(self.parse(qs), **kw)
+        return self._search(self.parse(qs), **kw)
 
     def dump(self, fh):
         # poor-man's json serialization, printing the enclosing container
@@ -93,6 +92,98 @@ class Index:
     def __len__(self):
         with self.ix.reader() as reader:
             return reader.doc_count()
+
+
+class Search:
+
+    """
+    A lazily-executed search against the underlying index.
+
+    The search is performed upon `__enter__` (and the results are returned
+    by that method), and index resources are released upon `__exit__`.
+    """
+
+    def __init__(self, searcher, q, **kw):
+        assert searcher is not None
+        assert q is not None
+        self._searcher = searcher
+        self._q = q
+        self._kw = kw
+
+    def __enter__(self):
+        self._searcher.__enter__()
+        self._results = self._searcher.search(self._q, **self._kw)
+        return Results(self._results, self)
+
+    def __exit__(self, *exc_info):
+        self._searcher.__exit__(*exc_info)
+
+    def __repr__(self):
+        return '<Search (q=%r)>' % self._q
+
+
+class Results:
+
+    """
+    The results of a `Search` operation, exposed as listlike object.
+    """
+
+    def __init__(self, results, search):
+        assert results is not None
+        assert search
+        self._results = results
+        self._search = search
+
+    def __len__(self):
+        return len(self._results)
+
+    def __getitem__(self, n):
+        return Result(self._results[n])
+
+    def __iter__(self):
+        return map(Result, self._results)
+
+    def __bool__(self):
+        return bool(self._results)
+
+    def __repr__(self):
+        return '<Results (count=%d, search=%r)>' % (len(self), self._search)
+
+
+class Result:
+
+    """ A single result of a search. """
+
+    def __init__(self, hit):
+        assert hit
+        self._hit = hit
+
+    @property
+    def fields(self):
+        return self._hit.fields()
+
+    def __eq__(self, other):
+        if not isinstance(other, Result):
+            return False
+        return self.fields == other.fields
+
+    def __len__(self):
+        return len(self.fields)
+
+    def __iter__(self):
+        return iter(self.fields)
+
+    def __getitem__(self, field):
+        return self.fields[field]
+
+    def __contains__(self, key):
+        return key in self.fields
+
+    def __repr__(self):
+        return '<Result (%s)>' % str(self.fields)
+
+    def get(self, field, default=None):
+        return self.fields.get(field, default)
 
 
 def strip(val):

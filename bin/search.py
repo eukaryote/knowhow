@@ -31,12 +31,15 @@ def main(args):
     if args.get('KEYWORD'):
         keyword_query = index.parse(' '.join(kw for kw in args['KEYWORD']))
     if keyword_query:
-        results = index.query(keyword_query, filter=tag_query)
+        search = index._search(keyword_query, filter=tag_query)
     else:
         assert tag_query  # at least one should have been required by docopt
-        results = index.query(tag_query)
-    for doc in results:
-        print(doc)
+        search = index._search(tag_query)
+    with search as results:
+        for result in results:
+            fs = result.fields
+            print('[%s]: %s' % (','.join(fs['tag']), fs['content']))
+
     return 0
 
 
