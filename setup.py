@@ -73,5 +73,6 @@ setup(
     ],
     extras_require={
         'testing': ['pytest'],
+        'develop': ['wheel'],
     }
 )
