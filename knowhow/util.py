@@ -1,8 +1,15 @@
+from __future__ import print_function
+
 import os
 import sys
-from configparser import ConfigParser
+try:
+    from configparser import NoSectionError, NoOptionError, ConfigParser
+except ImportError:  # py2
+    from ConfigParser import (NoSectionError, NoOptionError,
+                              SafeConfigParser as ConfigParser)
 
-from datetime import datetime, timezone
+from datetime import datetime
+import pytz
 
 
 iso_date_format = '%Y-%m-%dT%H:%M:%S.%f+00:00'
@@ -16,7 +23,7 @@ def parse_datetime(val):
     if not val:
         return val
     d = datetime.strptime(val, iso_date_format)
-    d = d.replace(tzinfo=timezone.utc)
+    d = d.replace(tzinfo=pytz.utc)
     return d
 
 
@@ -57,5 +64,8 @@ def get_data_dir(app_dir=None, platform=None):
     if not app_dir:
         app_dir = get_app_dir(platform=platform)
     config = get_config(app_dir=app_dir)
-    path = config.get('main', 'data', fallback=None)
+    try:
+        path = config.get('main', 'data')  # no fallback kwarg in py2
+    except (NoSectionError, NoOptionError):
+        path = None
     return path if path else os.path.join(app_dir, 'data')
