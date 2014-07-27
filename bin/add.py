@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#-*- coding: utf-8 -*-
 
 """Add (or update) a knowhow entry, optionally with one or more tags.
 
@@ -12,6 +13,12 @@ Options:
   --version             Show version.
   -t TAG, --tag=<TAG>   Add TERM values and associate with TAG.
 """
+
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 import sys
 
 from docopt import docopt

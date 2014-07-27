@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#-*- coding: utf-8 -*-
 
 """Show information about the knowhow index.
 
@@ -11,6 +12,11 @@ Options:
   -h --help             Show this screen.
   --version             Show version.
 """
+
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
 
 import sys
 from datetime import datetime, timezone

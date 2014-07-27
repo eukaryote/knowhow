@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#-*- coding: utf-8 -*-
 
 """Search knowhow for entries matching tags and/or content keywords.
 
@@ -12,6 +13,12 @@ Options:
   --version           Show version.
   -t TAG, --tag=TAG   Search for snippets tagged with TAG.
 """
+
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 import sys
 from docopt import docopt
 

@@ -15,7 +15,7 @@ def read(*filenames):
     buf = []
     for filename in filenames:
         filepath = os.path.join(here_dir, filename)
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, 'r') as f:
             buf.append(f.read())
     return '\n\n'.join(buf)
 
@@ -44,8 +44,9 @@ setup(
     tests_require=['pytest'],
     install_requires=[
         'whoosh==2.5.7',
-        'six==1.6.1',
-        'docopt==0.6.1'
+        'six==1.7.3',
+        'docopt==0.6.1',
+        'pytz==2014.4'
     ],
     cmdclass={'test': PyTest},
     author_email='sapientdust+knowhow@gmail.com',

@@ -1,7 +1,18 @@
+#-*- coding: utf-8 -*-
+
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
 import os
+import sys
 import json
 import pytz
 from datetime import datetime
+
+import six
+from six.moves import map
 
 from whoosh.index import create_in, open_dir
 from whoosh.query import Query
@@ -11,7 +22,34 @@ from knowhow.schema import SCHEMA, identifier
 import knowhow.util as util
 
 
-class Index:
+# Convenience function for ensuring that we serialize character data
+# to bytes for python2 and text for python3, while deserializing from either.
+if six.PY3:
+    def serialize(obj):
+        return obj.decode() if isinstance(obj, six.binary_type) else obj
+else:
+    def serialize(obj):
+        return unicode(obj) if isinstance(obj, six.binary_type) else obj
+
+
+def is_unicode_console():
+    try:
+        sys.stdout.write('\ufeff\b')
+        sys.stdout.flush()
+    except UnicodeEncodeError:
+        return False
+    except Exception:
+        import traceback
+        traceback.print_tb()
+        return False
+    else:
+        return True
+
+
+class Index(object):
+
+    # whether the json dump will be ascii
+    ensure_ascii = not(is_unicode_console())
 
     def __init__(self, app_dir=None, index_dir=None):
         if not app_dir:
@@ -40,10 +78,10 @@ class Index:
 
     def _add(self, writer, **kwargs):
         _no_update = kwargs.pop('_no_update', False)
-        kwargs = {k: strip(kwargs[k]) for k in kwargs}
         kwargs['id'] = identifier(kwargs)
         if not _no_update:
             kwargs['updated'] = datetime.now(pytz.utc)
+        kwargs = dict(((k, serialize(strip(kwargs[k]))) for k in kwargs))
         writer.update_document(**kwargs)
 
     def add(self, **kwargs):
@@ -74,8 +112,21 @@ class Index:
             with self.ix.reader() as reader:
                 count = 0
                 for docnum, docfiles in reader.iter_docs():
+                    _docfiles = {}
+                    for k in docfiles:
+                        v = docfiles[k]
+                        if isinstance(k, six.binary_type):
+                            k = k.decode('utf8')
+                        if isinstance(v, six.binary_type):
+                            v = v.decode('utf8')
+                        elif isinstance(v, list):
+                            v = [_v.decode('utf8')
+                                 if isinstance(_v, six.binary_type)
+                                 else _v for _v in v]
+                        _docfiles[k] = v
                     print(',\n' if count else '\n', file=fh, end='')
-                    json.dump(docfiles, fh, default=util.json_serializer)
+                    json.dump(_docfiles, fh, default=util.json_serializer,
+                              ensure_ascii=self.ensure_ascii)
                     count += 1
         finally:
             print('\n]', file=fh)
@@ -187,7 +238,7 @@ class Result:
 
 
 def strip(val):
-    if isinstance(val, str):
+    if isinstance(val, six.string_types):
         return val.strip()
     try:
         return list(filter(None, map(strip, val)))
