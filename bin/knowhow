@@ -49,15 +49,17 @@ if __name__ == '__main__':
         script = os.path.join(knowhow_bin_dir, bin)
         os.execl(python, python, script, '--help')
 
+    cmds = ['search', 'add', 'remove', 'dump', 'pprint', 'load', 'info']
+
     if args['<command>'] in ['help', None]:
         bin = args['<args>'][0] if args['<args>'] else None
-        if bin in ['search', 'add', 'remove', 'dump', 'load', 'info']:
+        if bin in cmds:
             bin += '.py'
         else:
             bin = 'knowhow'
         help(bin)
     else:
-        script = os.path.join(knowhow_bin_dir, '%s.py' % args['<command>'])
+        script = os.path.join(knowhow_bin_dir, args['<command>'])
         if os.path.exists(script):
             os.execv(python, [python, script] + args['<args>'])
         help('knowhow')

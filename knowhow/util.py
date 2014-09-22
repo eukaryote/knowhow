@@ -15,6 +15,7 @@ except ImportError:  # py2
 
 from datetime import datetime
 import pytz
+import pytz.reference
 
 
 iso_date_format = '%Y-%m-%dT%H:%M:%S.%f+00:00'
@@ -30,6 +31,17 @@ def parse_datetime(val):
     d = datetime.strptime(val, iso_date_format)
     d = d.replace(tzinfo=pytz.utc)
     return d
+
+
+def utc_to_local(dt):
+    """
+    Convert UTC `datetime.datetime` instance to localtime.
+
+    Returns a datetime with `tzinfo` set to the current local timezone.
+    """
+    local_timezone = pytz.reference.LocalTimezone()
+    dt = dt + local_timezone.utcoffset(datetime.now())
+    return dt.replace(tzinfo=local_timezone)
 
 
 def get_app_dir(platform=None):

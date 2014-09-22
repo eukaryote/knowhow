@@ -130,8 +130,7 @@ class Index(object):
 
     def dump(self, fh):
         # poor-man's json serialization, printing the enclosing container
-        # manually and dumping each doc individually; will have to take
-        # another approach to deserializing if ever dealing with large indexes
+        # manually and dumping each doc individually
         print('[', file=fh, end='')
         try:
             count = 0
@@ -143,7 +142,23 @@ class Index(object):
         finally:
             print('\n]', file=fh)
 
+    def pprint(self, fh=None):
+        if fh is None:
+            fh = sys.stdout
+        for doc in self.iter_docs():
+            print('id:', doc['id'], file=fh)
+            print('tag:', ', '.join(doc['tag']), file=fh)
+            timestr = (util.utc_to_local(doc['updated'])
+                           .strftime('%Y-%m-%d %H:%M:%S'))
+            print('update:', timestr, file=fh)
+            print('content:', file=fh)
+            print(doc['content'], file=fh)
+            print('\n', file=fh)
+
     def load(self, fh):
+        # 'fh' contains a JSON list of docs; this whole JSON-based approach
+        # that reads the entire list into memory in one shot wouldn't work for
+        # very large indexes
         with self.ix.writer() as writer:
             for doc in json.load(fh):
                 doc['updated'] = util.parse_datetime(doc['updated'])

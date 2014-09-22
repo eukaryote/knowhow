@@ -13,6 +13,7 @@
         "help:show help about a knowhow command"
         "info:show info about a knowhow repo"
         "load:load a knowhow repo from stdin"
+        "pprint:pretty-print a knowhow repo to stdout"
         "remove:remove a snippet from a knowhow repo"
         "search:search a knowhow repo"
     )
