@@ -1,17 +1,21 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-"""Add (or update) a knowhow entry, optionally with one or more tags.
+"""Add (or update) an entry, optionally with one or more tags.
 
 Usage:
-  add.py [-t TAG|--tag=TAG] TERM...
+  add.py [-t TAG|--tag=TAG] TEXT...
   add.py (-h | --help)
   add.py --version
 
 Options:
   -h --help             Show this screen.
   --version             Show version.
-  -t TAG, --tag=<TAG>   Add TERM values and associate with TAG.
+  -t TAG, --tag=<TAG>   Associate entry with TAG.
+
+Notes:
+
+  If TEXT is a single '-', then it will be read from stdin.
 """
 
 from __future__ import absolute_import
@@ -34,9 +38,13 @@ def parse(val):
 
 
 def main(args):
+    if args['TEXT'] == ['-']:
+        content = sys.stdin.read()
+    else:
+        content = ' '.join(filter(None, args['TEXT']))
     Index().add(
         tag=list(parse(args['--tag'])),
-        content=' '.join(filter(None, args['TERM']))
+        content=content
     )
     return 0
 
