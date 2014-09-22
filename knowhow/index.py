@@ -110,31 +110,36 @@ class Index(object):
     def search(self, qs, **kw):
         return self._search(self.parse(qs), **kw)
 
+    def iter_docs(self):
+        # TODO: consider making Index iterable instead of this method
+        with self.ix.reader() as reader:
+            for docnum, docfiles in reader.iter_docs():
+                doc = {}
+                for k in docfiles:
+                    v = docfiles[k]
+                    if isinstance(k, six.binary_type):
+                        k = k.decode('utf8')
+                    if isinstance(v, six.binary_type):
+                        v = v.decode('utf8')
+                    elif isinstance(v, list):
+                        v = [_v.decode('utf8')
+                             if isinstance(_v, six.binary_type)
+                             else _v for _v in v]
+                    doc[k] = v
+                yield doc
+
     def dump(self, fh):
         # poor-man's json serialization, printing the enclosing container
         # manually and dumping each doc individually; will have to take
         # another approach to deserializing if ever dealing with large indexes
         print('[', file=fh, end='')
         try:
-            with self.ix.reader() as reader:
-                count = 0
-                for docnum, docfiles in reader.iter_docs():
-                    _docfiles = {}
-                    for k in docfiles:
-                        v = docfiles[k]
-                        if isinstance(k, six.binary_type):
-                            k = k.decode('utf8')
-                        if isinstance(v, six.binary_type):
-                            v = v.decode('utf8')
-                        elif isinstance(v, list):
-                            v = [_v.decode('utf8')
-                                 if isinstance(_v, six.binary_type)
-                                 else _v for _v in v]
-                        _docfiles[k] = v
-                    print(',\n' if count else '\n', file=fh, end='')
-                    json.dump(_docfiles, fh, default=util.json_serializer,
-                              ensure_ascii=self.ensure_ascii)
-                    count += 1
+            count = 0
+            for doc in self.iter_docs():
+                print(',\n' if count else '\n', file=fh, end='')
+                json.dump(doc, fh, default=util.json_serializer,
+                          ensure_ascii=self.ensure_ascii)
+                count += 1
         finally:
             print('\n]', file=fh)
 
