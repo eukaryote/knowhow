@@ -14,6 +14,7 @@ Options:
 Commands:
     search          Search a knowhow repo
     add             Add a snippet to a knowhow repo
+    remove          Remove a snippet from a knowhow repo
     info            Show info about a knowhow repo
     load            Load a dumped export into a knowhow repo from STDIN
     dump            Dump a knowhow repo to STDOUT
@@ -50,7 +51,7 @@ if __name__ == '__main__':
 
     if args['<command>'] in ['help', None]:
         bin = args['<args>'][0] if args['<args>'] else None
-        if bin in ['search', 'add', 'dump', 'load', 'info']:
+        if bin in ['search', 'add', 'remove', 'dump', 'load', 'info']:
             bin += '.py'
         else:
             bin = 'knowhow'

@@ -1,0 +1,33 @@
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-
+
+"""Remove one or more entries.
+
+Usage:
+  remove.py ID...
+  remove.py (-h | --help)
+  remove.py --version
+"""
+
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+
+import sys
+
+from docopt import docopt
+
+import knowhow
+from knowhow.index import Index
+
+
+def main(args):
+    num_removed = Index().remove(*args['ID'])
+    print('removed %d entries' % num_removed)
+    return 0
+
+
+if __name__ == '__main__':
+    arguments = docopt(__doc__, version=knowhow.__version__)
+    sys.exit(main(arguments))

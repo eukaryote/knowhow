@@ -93,6 +93,13 @@ class Index(object):
             for doc in docs:
                 self._add(writer, **doc)
 
+    def remove(self, *ids):
+        num_removed = 0
+        with self.ix.writer() as writer:
+            for id_ in ids:
+                num_removed += writer.delete_by_term('id', id_)
+        return num_removed
+
     def parse(self, qs):
         return QueryParser('content', self.ix.schema).parse(qs)
 
