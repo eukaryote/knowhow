@@ -150,8 +150,7 @@ class Index(object):
             print('tag:', ', '.join(doc['tag']), file=fh)
             timestr = (util.utc_to_local(doc['updated'])
                            .strftime('%Y-%m-%d %H:%M:%S'))
-            print('update:', timestr, file=fh)
-            print('content:', file=fh)
+            print('updated: %s' % timestr, file=fh)
             print(doc['content'], file=fh)
             print('\n', file=fh)
 
