@@ -171,7 +171,8 @@ class Index(object):
             return reader.doc_count()
 
 
-class Search:
+@six.python_2_unicode_compatible
+class Search(object):
 
     """
     A lazily-executed search against the underlying index.
@@ -198,8 +199,11 @@ class Search:
     def __repr__(self):
         return '<Search (q=%r)>' % self._q
 
+    __str__ = __repr__
 
-class Results:
+
+@six.python_2_unicode_compatible
+class Results(object):
 
     """
     The results of a `Search` operation, exposed as listlike object.
@@ -226,8 +230,11 @@ class Results:
     def __repr__(self):
         return '<Results (count=%d, search=%r)>' % (len(self), self._search)
 
+    __str__ = __repr__
 
-class Result:
+
+@six.python_2_unicode_compatible
+class Result(object):
 
     """ A single result of a search. """
 
@@ -257,7 +264,9 @@ class Result:
         return key in self.fields
 
     def __repr__(self):
-        return '<Result (%s)>' % str(self.fields)
+        return six.u('<Result (%s)>' % str(self.fields))
+
+    __str__ = __repr__
 
     def get(self, field, default=None):
         return self.fields.get(field, default)
