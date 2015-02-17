@@ -44,7 +44,8 @@ setup(
     version=knowhow.__version__,
     url='http://github.com/eukaryote/knowhow/',
     license='Apache Software License',
-    author='eukaryote',
+    author='Calvin Smith',
+    author_email='sapientdust+knowhow@gmail.com',
     tests_require=['pytest'],
     install_requires=[
         'whoosh==2.5.7',
@@ -53,7 +54,6 @@ setup(
         'pytz==2014.10'
     ],
     cmdclass={'test': PyTest},
-    author_email='sapientdust+knowhow@gmail.com',
     description=(
         'A simple knowledge repository that is searchable and scriptable'
     ),
