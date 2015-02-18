@@ -32,32 +32,14 @@ else:
         return unicode(obj) if isinstance(obj, six.binary_type) else obj
 
 
-def is_unicode_console():
-    try:
-        sys.stdout.write('\ufeff\b')
-        sys.stdout.flush()
-    except UnicodeEncodeError:
-        return False
-    except Exception:
-        import traceback
-        traceback.print_tb()
-        return False
-    else:
-        return True
-
-
 class Index(object):
 
-    # whether the json dump will be ascii
-    ensure_ascii = not(is_unicode_console())
+    # whether the json dump should be ascii with unicode escapes
+    ensure_ascii = not(util.is_ascii_console())
 
     def __init__(self, app_dir=None, index_dir=None):
-        if not app_dir:
-            app_dir = util.get_app_dir()
-        if not index_dir:
-            index_dir = util.get_data_dir(app_dir=app_dir)
-        self.app_dir = app_dir
-        self.index_dir = index_dir
+        self.app_dir = app_dir or util.get_app_dir()
+        self.index_dir = index_dir or util.get_data_dir(app_dir=self.app_dir)
         self._ix = None
 
     def open(self, clear=False):
@@ -71,10 +53,10 @@ class Index(object):
         return self._ix
 
     @property
-    def ix(self, clear=False):
+    def ix(self):
         if self._ix is not None:
             return self._ix
-        return self.open(clear=clear)
+        return self.open(clear=False)
 
     def _add(self, writer, **kwargs):
         _no_update = kwargs.pop('_no_update', False)
@@ -110,8 +92,7 @@ class Index(object):
     def search(self, qs, **kw):
         return self._search(self.parse(qs), **kw)
 
-    def iter_docs(self):
-        # TODO: consider making Index iterable instead of this method
+    def __iter__(self):
         with self.ix.reader() as reader:
             for docnum, docfiles in reader.iter_docs():
                 doc = {}
@@ -134,10 +115,10 @@ class Index(object):
         print('[', file=fh, end='')
         try:
             count = 0
-            for doc in self.iter_docs():
+            for doc in self:
                 print(',\n' if count else '\n', file=fh, end='')
                 json.dump(doc, fh, default=util.json_serializer,
-                          ensure_ascii=self.ensure_ascii)
+                          ensure_ascii=self.ensure_ascii, sort_keys=True)
                 count += 1
         finally:
             print('\n]', file=fh)
@@ -145,7 +126,7 @@ class Index(object):
     def pprint(self, fh=None):
         if fh is None:
             fh = sys.stdout
-        for doc in self.iter_docs():
+        for doc in self:
             print('id:', doc['id'], file=fh)
             print('tag:', ', '.join(doc['tag']), file=fh)
             timestr = (util.utc_to_local(doc['updated'])

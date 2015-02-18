@@ -81,3 +81,7 @@ def get_data_dir(app_dir=None, platform=None):
     except (NoSectionError, NoOptionError):
         path = None
     return path if path else os.path.join(app_dir, 'data')
+
+
+def is_ascii_console():
+    return sys.stdout.encoding != 'UTF-8'
