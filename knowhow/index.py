@@ -33,6 +33,10 @@ else:
 
 
 class Index(object):
+    """
+    Wrapper around a whoosh index with a simpler API for creating, updating,
+    and searching the index.
+    """
 
     # whether the json dump should be ascii with unicode escapes
     ensure_ascii = not(util.is_ascii_console())
@@ -59,14 +63,22 @@ class Index(object):
         return self.open(clear=False)
 
     def _add(self, writer, **kwargs):
+        assert 'text' not in kwargs
         _no_update = kwargs.pop('_no_update', False)
         kwargs['id'] = identifier(kwargs)
+        text = []
+        if 'tag' in kwargs:
+            text.extend(kwargs['tag'] * 4)
+        if 'content' in kwargs:
+            text.append(kwargs['content'])
+        kwargs['text'] = ' '.join(text)
         if not _no_update:
             kwargs['updated'] = datetime.now(pytz.utc)
-        kwargs = dict(((k, serialize(strip(kwargs[k]))) for k in kwargs))
+        kwargs = dict((k, serialize(strip(kwargs[k]))) for k in kwargs)
         writer.update_document(**kwargs)
 
     def add(self, **kwargs):
+        assert 'text' not in kwargs
         with self.ix.writer() as writer:
             self._add(writer, **kwargs)
 
@@ -83,7 +95,7 @@ class Index(object):
         return num_removed
 
     def parse(self, qs):
-        return QueryParser('content', self.ix.schema).parse(qs)
+        return QueryParser('text', self.ix.schema).parse(qs)
 
     def _search(self, q, **kw):
         assert isinstance(q, Query)

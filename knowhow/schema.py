@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+# coding=utf8
 
 from __future__ import absolute_import
 from __future__ import print_function
@@ -16,10 +16,13 @@ SCHEMA = F.Schema(
     id=F.ID(unique=True, stored=True),
 
     # a multi-valued analyzed field
-    tag=F.TEXT(stored=True),
+    tag=F.KEYWORD(stored=True, field_boost=2.0),
 
     # the text content of the snippet
     content=F.TEXT(stored=True),
+
+    # all searchable fields, for use as a default field
+    text=F.TEXT(stored=False),
 
     # when the snippet was last modified
     updated=F.DATETIME(stored=True)
