@@ -38,6 +38,12 @@ def decode(obj):
     return obj
 
 
+def encode(obj, ascii=False):
+    if isinstance(obj, six.text_type):
+        obj = obj.encode('unicode-escape' if ascii else 'utf8')
+    return obj
+
+
 def is_ascii_console():
     return sys.stdout.encoding != 'UTF-8'
 

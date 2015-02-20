@@ -15,6 +15,7 @@ import pytest
 from tests import setenv, test_doc0
 
 from knowhow.index import Index
+import knowhow.util as util
 
 
 @pytest.fixture
@@ -25,22 +26,23 @@ def tmpd(request):
 
 
 @pytest.fixture
-def conf_path(conf, tmpd):
-    path = join(tmpd, 'knowhow.ini')
-    with open(path, 'wb') as f:
-        conf.write(f)
-    return path
-
-
-@pytest.fixture
 def conf():
     try:
         conf = configparser.SafeConfigParser()
     except AttributeError:
         conf = configparser.ConfigParser()
     conf.add_section('main')
-    conf.set('main', 'data', '/app/data')
+    conf.set('main', 'data', util.decode('/app/data'))
     return conf
+
+
+@pytest.fixture
+def conf_path(conf, tmpd):
+    print('conf: %s' % conf)
+    path = join(tmpd, 'knowhow.ini')
+    with open(path, 'w') as f:
+        conf.write(f)
+    return path
 
 
 @pytest.fixture

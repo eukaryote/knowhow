@@ -69,7 +69,7 @@ def test_index_add(index_one):
 
 def test_index_dump_empty(tmpd, index_empty):
     path = join(tmpd, 'dump.json')
-    with open(path, 'wb') as f:
+    with open(path, 'w') as f:
         index_empty.dump(f)
     with open(path) as f:
         docs = json.load(f)
@@ -78,7 +78,7 @@ def test_index_dump_empty(tmpd, index_empty):
 
 def test_index_dump_one(tmpd, index_one):
     path = join(tmpd, 'dump.json')
-    with open(path, 'wb') as f:
+    with open(path, 'w') as f:
         index_one.dump(f)
     with open(path) as f:
         docs = json.load(f)

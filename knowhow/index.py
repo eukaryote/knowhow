@@ -114,16 +114,16 @@ class Index(object):
     def dump(self, fh):
         # poor-man's json serialization, printing the enclosing container
         # manually and dumping each doc individually
-        print('[', file=fh, end='')
+        fh.write('[')
         try:
             count = 0
             for doc in self:
-                print(',\n' if count else '\n', file=fh, end='')
+                fh.write(',\n' if count else '\n')
                 json.dump(doc, fh, default=util.json_serializer,
                           ensure_ascii=self.ensure_ascii, sort_keys=True)
                 count += 1
         finally:
-            print('\n]', file=fh)
+            fh.write('\n]')
 
     def pprint(self, fh=None):
         if fh is None:

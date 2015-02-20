@@ -37,6 +37,18 @@ def test_decode_utf8():
     assert s == 'चतरस'
 
 
+def test_encode_nonstr():
+    assert util.encode(0) == 0
+
+
+def test_encode_ascii():
+    assert util.encode('café', True) == six.b(r'caf\xe9')
+
+
+def test_encode_utf8():
+    assert util.encode('café', False) == 'café'.encode('utf8')
+
+
 def test_get_app_dir_env_set():
     path = '/app'
     with env(KNOWHOW_HOME=path):
