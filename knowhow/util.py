@@ -12,14 +12,34 @@ import pytz
 import pytz.reference
 from datetime import datetime
 
+import six
+
+from six.moves.configparser import NoSectionError, NoOptionError
 try:
-    from configparser import NoSectionError, NoOptionError, ConfigParser
-except ImportError:  # py2
-    from ConfigParser import (NoSectionError, NoOptionError,
-                              SafeConfigParser as ConfigParser)
+    from six.moves.configparser import SafeConfigParser as ConfigParser
+except ImportError:  # py3
+    from.six.moves.configparser import ConfigParser
 
 
 iso_date_format = '%Y-%m-%dT%H:%M:%S.%f+00:00'
+
+
+def decode(obj):
+    """
+    Decode obj to unicode if it is a byte string, trying first utf8 and then
+    iso-8859-1, raising a `UnicodeDecodeError` if unable to decode a byte
+    string, or returning obj unchanged if it is not a byte string.
+    """
+    if isinstance(obj, six.binary_type):
+        try:
+            obj = obj.decode('utf8')
+        except UnicodeDecodeError:
+            obj = obj.decode('iso-8859-1')
+    return obj
+
+
+def is_ascii_console():
+    return sys.stdout.encoding != 'UTF-8'
 
 
 def json_serializer(val):
@@ -81,7 +101,3 @@ def get_data_dir(app_dir=None, platform=None):
     except (NoSectionError, NoOptionError):
         path = None
     return path if path else os.path.join(app_dir, 'data')
-
-
-def is_ascii_console():
-    return sys.stdout.encoding != 'UTF-8'

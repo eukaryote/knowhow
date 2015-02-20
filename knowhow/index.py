@@ -22,16 +22,6 @@ from knowhow.schema import SCHEMA, identifier
 import knowhow.util as util
 
 
-# Convenience function for ensuring that we serialize character data
-# to bytes for python2 and text for python3, while deserializing from either.
-if six.PY3:
-    def serialize(obj):
-        return obj.decode() if isinstance(obj, six.binary_type) else obj
-else:
-    def serialize(obj):
-        return unicode(obj) if isinstance(obj, six.binary_type) else obj
-
-
 class Index(object):
     """
     Wrapper around a whoosh index with a simpler API for creating, updating,
@@ -74,7 +64,7 @@ class Index(object):
         kwargs['text'] = ' '.join(text)
         if not _no_update:
             kwargs['updated'] = datetime.now(pytz.utc)
-        kwargs = dict((k, serialize(strip(kwargs[k]))) for k in kwargs)
+        kwargs = dict((k, util.decode(strip(kwargs[k]))) for k in kwargs)
         writer.update_document(**kwargs)
 
     def add(self, **kwargs):

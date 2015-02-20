@@ -1,3 +1,5 @@
+# coding=utf8
+
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
@@ -8,9 +10,31 @@ from datetime import datetime
 import time
 import pytz
 
+import six
+
 import knowhow.util as util
 
 from tests import env
+
+
+def test_decode_nonstr():
+    assert util.decode(0) == 0
+
+
+def test_decode_ascii():
+    bs = 'asdf'.encode('ascii')
+    assert isinstance(bs, six.binary_type)
+    s = util.decode(bs)
+    assert isinstance(s, six.text_type)
+    assert s == 'asdf'
+
+
+def test_decode_utf8():
+    bs = 'चतरस'.encode('utf8')
+    assert isinstance(bs, six.binary_type)
+    s = util.decode(bs)
+    assert isinstance(s, six.text_type)
+    assert s == 'चतरस'
 
 
 def test_get_app_dir_env_set():
