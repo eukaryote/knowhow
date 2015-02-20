@@ -13,7 +13,6 @@ if sys.version_info < (2, 7):
     sys.stdout.write("knowhow requires Python 2.7 or greater\n")
     sys.exit(1)
 
-# PY2 = sys.version_info < (3,)
 here_dir = abspath(dirname(__file__))
 
 
@@ -57,7 +56,7 @@ setup(
     description=(
         'A simple knowledge repository that is searchable and scriptable'
     ),
-    long_description=read('README.md', 'CHANGES.md'),
+    long_description=read('README.rst', 'CHANGES.rst'),
     packages=['knowhow'],
     include_package_data=True,
     platforms='any',
