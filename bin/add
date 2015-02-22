@@ -4,9 +4,9 @@
 """Add (or update) an entry, optionally with one or more tags.
 
 Usage:
-  add.py [-t TAG|--tag=TAG] TEXT...
-  add.py (-h | --help)
-  add.py --version
+  add [-t TAG|--tag=TAG] TEXT...
+  add (-h | --help)
+  add --version
 
 Options:
   -h --help             Show this screen.

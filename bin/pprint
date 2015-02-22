@@ -4,9 +4,9 @@
 """Pretty-print a knowhow repo to stdout.
 
 Usage:
-  pprint.py
-  pprint.py (-h | --help)
-  pprint.py --version
+  pprint
+  pprint (-h | --help)
+  pprint --version
 
 Options:
   -h --help             Show this screen.

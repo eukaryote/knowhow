@@ -4,9 +4,9 @@
 """Load previously dumped knowhow repo from stdin JSON array.
 
 Usage:
-  load.py
-  load.py (-h | --help)
-  load.py --version
+  load
+  load (-h | --help)
+  load --version
 
 Options:
   -h --help             Show this screen.

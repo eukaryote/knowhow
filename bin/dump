@@ -4,9 +4,9 @@
 """Dump knowhow repo to stdout as JSON array.
 
 Usage:
-  dump.py
-  dump.py (-h | --help)
-  dump.py --version
+  dump
+  dump (-h | --help)
+  dump --version
 
 Options:
   -h --help             Show this screen.

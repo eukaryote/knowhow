@@ -4,9 +4,9 @@
 """Remove one or more entries.
 
 Usage:
-  remove.py ID...
-  remove.py (-h | --help)
-  remove.py --version
+  remove ID...
+  remove (-h | --help)
+  remove --version
 """
 
 from __future__ import absolute_import

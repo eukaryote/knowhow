@@ -4,9 +4,9 @@
 """Search knowhow for entries matching tags and/or content keywords.
 
 Usage:
-  search.py [-t TAG|--tag=TAG] [KEYWORD]...
-  search.py (-h | --help)
-  search.py --version
+  search [-t TAG|--tag=TAG] [KEYWORD]...
+  search (-h | --help)
+  search --version
 
 Options:
   -h --help           Show this screen.

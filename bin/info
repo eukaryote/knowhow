@@ -4,9 +4,9 @@
 """Show information about the knowhow index.
 
 Usage:
-  info.py
-  info.py (-h | --help)
-  info.py --version
+  info
+  info (-h | --help)
+  info --version
 
 Options:
   -h --help             Show this screen.
