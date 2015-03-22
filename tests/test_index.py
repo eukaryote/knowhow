@@ -99,3 +99,16 @@ def test_index_load(tmpd, index_empty):
     with index_empty.search('tag:mytag') as results:
         assert len(results) == 1
         assert results[0].get('content') == tests.test_doc_dumped['content']
+
+
+def test_index_get_tags(index_one):
+    tags = index_one.get_tags()
+    assert tags == ['mytag0']
+
+
+def test_index_get_tags_prefix(index_one):
+    assert index_one.get_tags(prefix=None) == ['mytag0']
+    assert index_one.get_tags(prefix='') == ['mytag0']
+    assert index_one.get_tags(prefix='m') == ['mytag0']
+    assert index_one.get_tags(prefix='mytag0') == ['mytag0']
+    assert index_one.get_tags(prefix='ytag') == []

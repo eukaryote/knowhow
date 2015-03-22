@@ -17,6 +17,7 @@ from six.moves import map
 from whoosh.index import create_in, open_dir
 from whoosh.query import Query
 from whoosh.qparser import QueryParser
+from whoosh.sorting import Facets
 
 from knowhow.schema import SCHEMA, identifier
 import knowhow.util as util
@@ -107,6 +108,16 @@ class Index(object):
                              else _v for _v in v]
                     doc[k] = v
                 yield doc
+
+    def get_tags(self, prefix=None):
+        facets = Facets()
+        facets.add_field('tag', allow_overlap=True)
+        with self.search('*:*', groupedby=facets) as result:
+            tags = list(result.groups().keys())
+        if prefix:
+            tags = [t for t in tags if t.startswith(prefix)]
+        tags.sort()
+        return tags
 
     def dump(self, fh):
         # poor-man's json serialization, printing the enclosing container
@@ -207,6 +218,9 @@ class Results(object):
 
     def __bool__(self):
         return bool(self._results)
+
+    def groups(self):
+        return dict(self._results.groups())
 
     def __repr__(self):
         return '<Results (count=%d, search=%r)>' % (len(self), self._search)

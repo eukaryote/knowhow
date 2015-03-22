@@ -18,6 +18,7 @@ Commands:
     info            Show info about a knowhow repo
     load            Load a dumped export into a knowhow repo from STDIN
     dump            Dump a knowhow repo to STDOUT
+    tags            Show tags in knowhow repo
     help            Show more information about a specific command
 
 Environment:
@@ -49,19 +50,19 @@ if __name__ == '__main__':
         script = os.path.join(knowhow_bin_dir, bin)
         os.execl(python, python, script, '--help')
 
-    cmds = ['search', 'add', 'remove', 'dump', 'pprint', 'load', 'info']
+    cmds = ['search', 'add', 'remove', 'dump', 'pprint', 'load', 'info',
+            'tags']
 
     if args['<command>'] in ['help', None]:
         bin = args['<args>'][0] if args['<args>'] else None
-        if bin in cmds:
-            bin += '.py'
-        else:
+        if bin not in cmds:
             bin = 'knowhow'
         help(bin)
     else:
         script = os.path.join(knowhow_bin_dir, args['<command>'])
         if os.path.exists(script):
-            os.execv(python, [python, script] + args['<args>'])
+            cmd = [python, script] + args['<args>']
+            os.execv(python, cmd)
         help('knowhow')
 
 ## sublimeconf: filetype=python
