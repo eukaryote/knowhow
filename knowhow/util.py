@@ -44,8 +44,15 @@ def encode(obj, ascii=False):
     return obj
 
 
-def is_ascii_console():
-    return sys.stdout.encoding != 'UTF-8'
+def needs_ascii(fh):
+    """
+    Answer whether to encode as ascii for the given file handle, which is based
+    on whether the handle has an encoding (None under py2 and UTF-8 under py3)
+    and whether the handle is associated with a tty.
+    """
+    if fh.encoding and fh.encoding != 'UTF-8':
+        return True
+    return not fh.isatty()
 
 
 def json_serializer(val):

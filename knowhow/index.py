@@ -28,9 +28,6 @@ class Index(object):
     and searching the index.
     """
 
-    # whether the json dump should be ascii with unicode escapes
-    ensure_ascii = not(util.is_ascii_console())
-
     def __init__(self, app_dir=None, index_dir=None):
         self.app_dir = app_dir or util.get_app_dir()
         self.index_dir = index_dir or util.get_data_dir(app_dir=self.app_dir)
@@ -114,13 +111,14 @@ class Index(object):
     def dump(self, fh):
         # poor-man's json serialization, printing the enclosing container
         # manually and dumping each doc individually
+        needs_ascii = util.needs_ascii(fh)
         fh.write('[')
         try:
             count = 0
             for doc in self:
                 fh.write(',\n' if count else '\n')
                 json.dump(doc, fh, default=util.json_serializer,
-                          ensure_ascii=self.ensure_ascii, sort_keys=True)
+                          ensure_ascii=needs_ascii, sort_keys=True)
                 count += 1
         finally:
             fh.write('\n]')

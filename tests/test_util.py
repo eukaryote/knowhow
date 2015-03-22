@@ -5,12 +5,16 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import sys
 from os.path import join, dirname
 from datetime import datetime
-import time
 import pytz
 
 import six
+try:
+    import unittest.mock as mock
+except ImportError:
+    import mock
 
 import knowhow.util as util
 
@@ -103,13 +107,50 @@ def test_parsedatetime_utc():
 
 
 def test_utc_to_local():
-    expected_offset = time.timezone
     nownaive = datetime.now()
     nowlocal = util.utc_to_local(datetime.utcnow())
-    local_offset = nowlocal.utcoffset()
-    if local_offset.days == -1:
-        expected_offset = (24 * 3600) - expected_offset
-    assert local_offset.seconds == expected_offset
     epochnaive = int(nownaive.strftime('%s'))
     epochlocal = int(nowlocal.strftime('%s'))
     assert abs(epochnaive - epochlocal) < 1
+
+
+def test_needs_ascii_no_encoding_tty():
+    with mock.patch('tests.test_util.sys.stdout') as fh:
+        fh.encoding = None
+        fh.isatty.return_value = True
+        assert not util.needs_ascii(sys.stdout)
+
+
+def test_needs_ascii_no_encoding_no_tty():
+    with mock.patch('tests.test_util.sys.stdout') as fh:
+        fh.encoding = None
+        fh.isatty.return_value = False
+        assert util.needs_ascii(fh)
+
+
+def test_needs_ascii_encoding_utf8_tty():
+    with mock.patch('tests.test_util.sys.stdout') as fh:
+        fh.encoding = 'UTF-8'
+        fh.isatty.return_value = True
+        assert not util.needs_ascii(fh)
+
+
+def test_needs_ascii_encoding_utf8_no_tty():
+    with mock.patch('tests.test_util.sys.stdout') as fh:
+        fh.encoding = 'UTF-8'
+        fh.isatty.return_value = False
+        assert util.needs_ascii(fh)
+
+
+def test_needs_ascii_encoding_ascii_tty():
+    with mock.patch('tests.test_util.sys.stdout') as fh:
+        fh.encoding = 'ascii'
+        fh.isatty.return_value = True
+        assert util.needs_ascii(fh)
+
+
+def test_needs_ascii_encoding_ascii_no_tty():
+    with mock.patch('tests.test_util.sys.stdout') as fh:
+        fh.encoding = 'ascii'
+        fh.isatty.return_value = False
+        assert util.needs_ascii(fh)

@@ -45,7 +45,7 @@ setup(
     license='Apache Software License',
     author='Calvin Smith',
     author_email='sapientdust+knowhow@gmail.com',
-    tests_require=['pytest'],
+    tests_require=['pytest', 'mock'],
     install_requires=[
         'whoosh==2.5.7',
         'six==1.9.0',
@@ -77,7 +77,7 @@ setup(
         'Topic :: Text Processing :: Indexing',
     ],
     extras_require={
-        'testing': ['pytest'],
+        'testing': ['pytest', 'mock'],
         'develop': ['wheel'],
     }
 )
