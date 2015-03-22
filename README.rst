@@ -21,13 +21,13 @@ to search the web and try to find again that one resource that gave the
 perfect information that you can almost but not quite remember. Instead, you
 save what you would to be searchable using a command like::
 
-    » knowhow add --tag 'bash,zsh' '${FOO%bar} evaluates to $FOO with bar stripped from end if present'
+    » knowhow add --tag 'bash,zsh' '${FOO%bar} evaluates to $FOO with bar stripped from end'
 
 
 And you can later search for that using a command like::
 
     » knowhow search bash
-    [bash,zsh]: ${FOO%bar} evaluates to $FOO with bar stripped from end if present
+    [bash,zsh]: ${FOO%bar} evaluates to $FOO with bar stripped from end
 
 The default search finds snippets that have the text string as a tag or in the
 body of the snippet, but you can search only by tag and do more complex
