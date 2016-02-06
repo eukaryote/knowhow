@@ -19,7 +19,6 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import sys
-from datetime import datetime, timezone
 
 from docopt import docopt
 
@@ -29,10 +28,8 @@ from knowhow.index import Index
 
 def print_overview(index):
     ix = index.ix
-    utc_dt = datetime.utcfromtimestamp(ix.last_modified())
-    local_dt = utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
     print('Index:', ix.storage.folder)
-    print('Last updated:', local_dt)
+    print('Last updated:', index.last_modified(localize=True))
     print('Repo size: %d snippet(s)' % ix.doc_count())
     print()
 

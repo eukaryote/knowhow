@@ -8,6 +8,7 @@ from __future__ import division
 import os
 import sys
 import json
+import time
 import pytz
 from datetime import datetime
 
@@ -157,6 +158,16 @@ class Index(object):
 
     def clear(self):
         self.open(clear=True)
+
+    def last_modified(self, localize=False):
+        dt = datetime.utcfromtimestamp(self.ix.last_modified())
+        if localize:
+            # avoid using 'datetime.timezone', which is not available in py2
+            epoch = time.mktime(dt.timetuple())
+            offset = (datetime.fromtimestamp(epoch) -
+                      datetime.utcfromtimestamp(epoch))
+            dt = dt + offset
+        return dt
 
     def __len__(self):
         with self.ix.reader() as reader:
