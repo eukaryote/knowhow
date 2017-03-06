@@ -64,5 +64,3 @@ if __name__ == '__main__':
             cmd = [python, script] + args['<args>']
             os.execv(python, cmd)
         help('knowhow')
-
-## sublimeconf: filetype=python
