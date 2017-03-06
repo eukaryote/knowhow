@@ -148,9 +148,7 @@ class Index(object):
             print('\n', file=fh)
 
     def load(self, fh):
-        # 'fh' contains a JSON list of docs; this whole JSON-based approach
-        # that reads the entire list into memory in one shot wouldn't work for
-        # very large indexes
+        # 'fh' contains a JSON list of docs
         with self.ix.writer() as writer:
             for doc in json.load(fh):
                 doc['updated'] = util.parse_datetime(doc['updated'])
