@@ -39,5 +39,5 @@ tagged all shell snippets with 'shell' and only the bash-specific ones with
 Supported Python Versions and Operating Systems
 -----------------------------------------------
 
-`knowhow` should work on any operating system and any Python version that
-is 2.7 or greater.
+`knowhow` should work on any operating system and on both Python 2.7 and
+Python 3 (3.4+).
