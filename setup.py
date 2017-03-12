@@ -47,10 +47,10 @@ setup(
     author_email='sapientdust+knowhow@gmail.com',
     tests_require=['pytest', 'mock'],
     install_requires=[
-        'whoosh==2.5.7',
-        'six==1.9.0',
-        'docopt==0.6.2',
-        'pytz==2014.10'
+        'whoosh',
+        'six',
+        'docopt',
+        'pytz'
     ],
     cmdclass={'test': PyTest},
     description=(
