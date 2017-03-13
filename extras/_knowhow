@@ -16,6 +16,7 @@
         "pprint:pretty-print a knowhow repo to stdout"
         "remove:remove a snippet from a knowhow repo"
         "search:search a knowhow repo"
+        "tags:view tags used in a knowhow repo"
     )
 
     if ! type knowhow &> /dev/null; then
@@ -43,6 +44,15 @@
                 '-t+:TAG[,TAG]*'
                 '--tag+:TAG[,TAG]*'
                 '*:"snippet to add":'
+            )
+            ;;
+        tags)
+            _command_args=(
+                '-c[include counts]'
+                '--counts[include counts]'
+                '-p+[limit to tags starting with PREFIX]:PREFIX:'
+                '--prefix+[limit to tags starting with PREFIX]:PREFIX:'
+                '*:"show tags"'
             )
             ;;
     esac
