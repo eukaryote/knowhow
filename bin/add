@@ -9,7 +9,7 @@ Usage:
 
 Options:
   -h --help             Show this screen.
-  -t TAG, --tag=<TAG>   Associate entry with TAG.
+  -t TAG, --tag=<TAG>   Associate entry with TAG (comma-delimited for multiple).
 
 Notes:
 
