@@ -25,9 +25,7 @@ from whoosh.query import Query
 from whoosh.qparser import QueryParser
 from whoosh.sorting import Facets
 
-from knowhow.schema import SCHEMA, identifier
-import knowhow.util as util
-import knowhow.conf as conf
+from knowhow import conf, schema, util
 
 
 class Index(object):
@@ -52,7 +50,7 @@ class Index(object):
         if not exists or clear:
             if not exists:
                 os.makedirs(self.index_dir, mode=0o2755)
-            self._whoosh_index = create_in(self.index_dir, SCHEMA)
+            self._whoosh_index = create_in(self.index_dir, schema.SCHEMA)
         else:
             self._whoosh_index = open_dir(self.index_dir)
         return self._whoosh_index
@@ -71,12 +69,18 @@ class Index(object):
     def _add(writer, **kwargs):
         assert 'text' not in kwargs
         _no_update = kwargs.pop('_no_update', False)
-        kwargs['id'] = identifier(kwargs)
+        if not kwargs.get('id'):
+            kwargs['id'] = schema.identifier(kwargs)
         text = []
         if 'tag' in kwargs:
-            text.extend(kwargs['tag'] * 4)
+            tags = kwargs['tag']
+            if not isinstance(tags, (list, tuple)):
+                tags = tags.split(',')
+            tags = list(filter(None, [t.strip() for t in tags]))
+            text.extend(tags * 4)  # include in text, and weight high
+            kwargs['tag'] = tags
         if 'content' in kwargs:
-            text.append(kwargs['content'])
+            text.append(kwargs['content'].strip())
         kwargs['text'] = ' '.join(text)
         if not _no_update:
             kwargs['updated'] = datetime.now(pytz.utc)
@@ -239,6 +243,23 @@ class Index(object):
         """The number of documents in this index."""
         with self._index.reader() as reader:
             return reader.doc_count()
+
+    def upgrade(self):
+        """
+        Upgrade an existing index to the current format.
+
+        Returns the number of items that were changed.
+        """
+        changed = 0
+        with self._index.writer() as writer:
+            with self._index.reader() as reader:
+                for docnum, docfields in reader.iter_docs():
+                    if len(docfields['id']) != schema.ID_LENGTH:
+                        docfields['id'] = schema.identifier(docfields)
+                        writer.delete_document(docnum)
+                        self._add(writer, **docfields)
+                        changed += 1
+        return changed
 
 
 @six.python_2_unicode_compatible  # pylint: disable=too-few-public-methods

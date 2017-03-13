@@ -15,7 +15,7 @@ import hashlib
 
 import whoosh.fields as F
 
-
+# This scheme defines the structure of a single knowhow snippet.
 SCHEMA = F.Schema(
 
     # unique identifier
@@ -34,6 +34,12 @@ SCHEMA = F.Schema(
     updated=F.DATETIME(stored=True)
 )
 
+# Function to create a hasher object for generating id of a snippet.
+IdGenerator = hashlib.sha256
+
+# The number of hexadecimal characters in an id
+ID_LENGTH = IdGenerator().digest_size * 2
+
 
 def identifier(doc):
     """
@@ -44,5 +50,5 @@ def identifier(doc):
     different tags is equivalent to just updating the tags of the existing
     document, which is the desired behavior.
     """
-    data = doc.get('content').encode('utf-8')
-    return hashlib.md5(data).hexdigest()
+    data = doc.get('content').strip().encode('utf-8')
+    return IdGenerator(data).hexdigest()

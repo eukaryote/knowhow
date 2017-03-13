@@ -7,10 +7,11 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import datetime
+import hashlib
 from os.path import exists, join
 import json
 
-from knowhow import util
+from knowhow import schema, util
 from knowhow.index import Index, Results
 
 import tests
@@ -97,13 +98,13 @@ def test_index_search_tag(index_one):
 def test_index_search_content(index_one):
     with index_one.search('content:mycontent0') as results:
         assert len(results) == 1
-        assert results[0].get('tag') == 'mytag0'
+        assert results[0].get('tag') == ['mytag0']
 
 
 def test_index_search_boolean(index_one):
     with index_one.search('content:mycontent0 AND tag:mytag0') as results:
         assert len(results) == 1
-        assert results[0].get('tag') == 'mytag0'
+        assert results[0].get('tag') == ['mytag0']
 
 
 def test_results_iter(index_one):
@@ -322,3 +323,38 @@ def test_index_last_modified_utc(index_one):
     now = datetime.datetime.now()
     delta = now - dt
     assert 0 < delta.total_seconds() < 1
+
+
+def test_index_upgrade_not_changed(index_one):
+    assert index_one.upgrade() == 0
+
+
+def test_index_upgrade_changed(index_empty):
+    index = index_empty
+    tag = 'mytag'
+    content = 'mycontent'
+    old_id = hashlib.md5(content.encode('ascii')).hexdigest()
+    new_id = schema.identifier({'content': content, 'tag': tag})
+
+    index.add(id=old_id, content=content, tag=[tag])
+    with index.search('id:' + old_id) as results:
+        assert len(results) == 1
+        assert results[0]['id'] == old_id
+
+    with index.search(tag) as results:
+        assert len(results) == 1
+        assert results[0]['id'] == old_id
+
+    assert index.upgrade() == 1
+    with index.search('id:' + old_id) as results:
+        assert not results
+
+    with index.search('id:' + new_id) as results:
+        assert len(results) == 1
+        assert results[0]['id'] == new_id
+
+    assert len(index) == 1
+
+    with index.search(tag) as results:
+        assert len(results) == 1
+        assert results[0]['id'] == new_id

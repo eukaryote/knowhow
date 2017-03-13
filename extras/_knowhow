@@ -17,6 +17,7 @@
         "remove:remove a snippet from a knowhow repo"
         "search:search a knowhow repo"
         "tags:view tags used in a knowhow repo"
+        "upgrade:upgrade the index of an existing knowhow repo"
     )
 
     if ! type knowhow &> /dev/null; then
