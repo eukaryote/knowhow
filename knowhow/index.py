@@ -360,6 +360,12 @@ class Result(object):
     def __contains__(self, key):
         return key in self.fields
 
+    def __format__(self, spec):
+        fields = self.fields
+        return spec.format(id=fields['id'],
+                           tags=','.join(fields.get('tag', [])),
+                           content=fields['content'])
+
     def __repr__(self):
         return '<Result (%s)>' % str(self.fields)
 

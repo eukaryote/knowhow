@@ -163,6 +163,14 @@ def test_result_repr(index_one):
         assert repr(result) == "<Result (%s)>" % (result.fields,)
 
 
+def test_result_format(index_one):
+    with index_one.search('tag:mytag0') as results:
+        result = results[0]
+        assert format(result, '{id}') == result.fields['id']
+        assert format(result, '{tags}') == ','.join(result.fields['tag'])
+        assert format(result, '{content}') == result.fields['content']
+
+
 def test_index_add(index_one):
     assert len(index_one) == 1
     with index_one.search('tag:mytag1') as results:

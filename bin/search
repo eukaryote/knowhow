@@ -24,6 +24,8 @@ from docopt import docopt
 from knowhow.index import Index
 from whoosh.query import And, Term
 
+TEMPLATE = '[{tags}][{id}]: {content}'
+
 
 def main(args):
     """Run 'search' main, searching index and showing results on stdout."""
@@ -47,9 +49,7 @@ def main(args):
 
     with search as results:
         for result in results:
-            fields = result.fields
-            print('[%s]: %s' % (','.join(fields['tag']), fields['content']))
-
+            print(format(result, TEMPLATE))
     return 0
 
 
