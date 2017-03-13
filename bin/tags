@@ -4,12 +4,13 @@
 """Print tags with one or more results, optionally restricted by tag prefix.
 
 Usage:
-  tags [-c | --counts] [<prefix>]
+  tags [-c | --counts] [-p PREFIX | --prefix=PREFIX]
   tags -h | --help
 
 Options:
-  -c --counts           Show counts for each tag.
-  -h --help             Show this screen.
+  -c --counts                  Show counts for each tag.
+  -p PREFIX, --prefix PREFIX   Limit results to tags starting with PREFIX
+  -h --help                    Show this screen.
 """
 
 from __future__ import absolute_import
@@ -27,8 +28,7 @@ from knowhow.index import Index
 def main(args):
     """Run 'tags' main, showing tags defined for index."""
     counts = args.get('--counts')
-    prefix = args.get('<prefix>')
-    for elem in Index().get_tags(prefix=prefix, counts=counts):
+    for elem in Index().get_tags(prefix=args.get('--prefix'), counts=counts):
         if counts:
             print(*elem)
         else:
