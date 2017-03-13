@@ -5,12 +5,10 @@
 
 Usage:
   dump
-  dump (-h | --help)
-  dump --version
+  dump -h | --help
 
 Options:
   -h --help             Show this screen.
-  --version             Show version.
 """
 
 from __future__ import absolute_import
@@ -22,14 +20,14 @@ import sys
 
 from docopt import docopt
 
-import knowhow
 from knowhow.index import Index
 
 
-def main(args):
+def main(_args):
+    """Run 'dump' main, dumping index stdout."""
     Index().dump(sys.stdout)
     return 0
 
+
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version=knowhow.__version__)
-    sys.exit(main(arguments))
+    sys.exit(main(docopt(__doc__)))

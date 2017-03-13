@@ -1,5 +1,11 @@
 # coding=utf8
 
+"""
+Schema for an item of "know how".
+
+A knowhow item has an id, optional tags, text content, and a modification date.
+"""
+
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals

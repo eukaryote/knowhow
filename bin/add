@@ -5,12 +5,10 @@
 
 Usage:
   add [-t TAG|--tag=TAG] TEXT...
-  add (-h | --help)
-  add --version
+  add -h | --help
 
 Options:
   -h --help             Show this screen.
-  --version             Show version.
   -t TAG, --tag=<TAG>   Associate entry with TAG.
 
 Notes:
@@ -27,28 +25,28 @@ import sys
 
 from docopt import docopt
 
-import knowhow
 from knowhow.index import Index
 
 
-def parse(val):
+def parse_tags(val):
+    """Parse tags str, splitting on comma and filtering empty."""
     if val is not None:
         tokens = (s.strip() for s in val.split(','))
         return filter(None, tokens)
 
 
 def main(args):
+    """Run 'add' main, adding document to index."""
     if args['TEXT'] == ['-']:
         content = sys.stdin.read()
     else:
         content = ' '.join(filter(None, args['TEXT']))
     Index().add(
-        tag=list(parse(args['--tag'])),
+        tag=list(parse_tags(args['--tag'])),
         content=content
     )
     return 0
 
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version=knowhow.__version__)
-    sys.exit(main(arguments))
+    sys.exit(main(docopt(__doc__)))

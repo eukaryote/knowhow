@@ -1,27 +1,36 @@
+# pylint: disable=missing-docstring,attribute-defined-outside-init
+
 # No future imports here so that unsupported Python versions will get a useful
 # error message with version requirements rather than an ImportError.
-
-from setuptools import setup
-from setuptools.command.test import test as testcommand
 
 from os.path import abspath, dirname, join
 import sys
 
+from setuptools import setup
+from setuptools.command.test import test as testcommand
+
+
 import knowhow
 
-if sys.version_info < (2, 7):
-    sys.stdout.write("knowhow requires Python 2.7 or greater\n")
-    sys.exit(1)
+HERE_DIR = abspath(dirname(__file__))
 
-here_dir = abspath(dirname(__file__))
+
+def check_version():
+    version = sys.version_info[:2]
+    if version < (2, 7) or (version >= (3, 0) and version < (3, 4)):
+        sys.stderr.write("knowhow requires Python 2.7 or Python 3.4+\n")
+        sys.exit(1)
 
 
 def read(*filenames):
     buf = []
     for filename in filenames:
-        filepath = join(here_dir, filename)
-        with open(filepath, 'r') as f:
-            buf.append(f.read())
+        filepath = join(HERE_DIR, filename)
+        try:
+            with open(filepath, 'r') as f:  # pylint: disable=invalid-name
+                buf.append(f.read())
+        except IOError:
+            pass  # ignore (running tests under tox)
     return '\n\n'.join(buf)
 
 
@@ -38,6 +47,8 @@ class PyTest(testcommand):
         sys.exit(errcode)
 
 
+check_version()
+
 setup(
     name='knowhow',
     version=knowhow.__version__,
@@ -45,7 +56,6 @@ setup(
     license='Apache Software License',
     author='Calvin Smith',
     author_email='sapientdust+knowhow@gmail.com',
-    tests_require=['pytest', 'mock'],
     install_requires=[
         'whoosh',
         'six',
@@ -62,10 +72,13 @@ setup(
     platforms='any',
     test_suite='tests',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha'
+        'Development Status :: 4 - Beta',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Natural Language :: English',
         'Environment :: Console',
         'Intended Audience :: Developers',
@@ -77,7 +90,7 @@ setup(
         'Topic :: Text Processing :: Indexing',
     ],
     extras_require={
-        'testing': ['pytest', 'mock'],
+        'testing': ['pytest', 'mock', 'pytest-cov', 'pytest-pylint'],
         'develop': ['wheel'],
     }
 )

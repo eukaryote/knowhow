@@ -5,12 +5,10 @@
 
 Usage:
   info
-  info (-h | --help)
-  info --version
+  info -h | --help
 
 Options:
   -h --help             Show this screen.
-  --version             Show version.
 """
 
 from __future__ import absolute_import
@@ -22,19 +20,20 @@ import sys
 
 from docopt import docopt
 
-import knowhow
 from knowhow.index import Index
 
 
 def print_overview(index):
-    ix = index.ix
-    print('Index:', ix.storage.folder)
+    """Print overview of index to stdout."""
+    _ix = index.ix
+    print('Index:', _ix.storage.folder)
     print('Last updated:', index.last_modified(localize=True))
-    print('Repo size: %d snippet(s)' % ix.doc_count())
+    print('Repo size: %d snippet(s)' % _ix.doc_count())
     print()
 
 
 def print_details(index):
+    """Print details of index to stdout."""
     with index.ix.reader() as reader:
         tags = (t.decode('utf-8') for t in reader.lexicon('tag'))
         print('tags:', ', '.join(tags))
@@ -43,7 +42,8 @@ def print_details(index):
             print('  {0}: {1}'.format(int(count), term.decode('utf-8')))
 
 
-def main(args):
+def main(_args):
+    """Run 'info' main, printing overview and details of index to stdout."""
     index = Index()
     print_overview(index)
     print_details(index)
@@ -51,5 +51,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version=knowhow.__version__)
-    sys.exit(main(arguments))
+    sys.exit(main(docopt(__doc__)))

@@ -40,27 +40,34 @@ from docopt import docopt
 import knowhow
 
 
-if __name__ == '__main__':
+def main():
+    """
+    Run main `knowhow` script.
+    """
     args = docopt(__doc__, options_first=True, version=knowhow.__version__)
     knowhow_bin_dir = os.path.dirname(__file__)
-    knowhow_bin = os.path.basename(__file__)
     python = sys.executable
 
-    def help(bin):
-        script = os.path.join(knowhow_bin_dir, bin)
+    def exec_help(knowhow_bin):
+        """Exec --help option for given path of main knowhow script."""
+        script = os.path.join(knowhow_bin_dir, knowhow_bin)
         os.execl(python, python, script, '--help')
 
     cmds = ['search', 'add', 'remove', 'dump', 'pprint', 'load', 'info',
             'tags']
 
     if args['<command>'] in ['help', None]:
-        bin = args['<args>'][0] if args['<args>'] else None
-        if bin not in cmds:
-            bin = 'knowhow'
-        help(bin)
+        knowhow_bin = args['<args>'][0] if args['<args>'] else None
+        if knowhow_bin not in cmds:
+            knowhow_bin = 'knowhow'
+        exec_help(knowhow_bin)
     else:
         script = os.path.join(knowhow_bin_dir, args['<command>'])
         if os.path.exists(script):
             cmd = [python, script] + args['<args>']
             os.execv(python, cmd)
-        help('knowhow')
+        exec_help('knowhow')
+
+
+if __name__ == '__main__':
+    main()

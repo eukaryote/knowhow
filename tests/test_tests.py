@@ -1,3 +1,6 @@
+# coding=utf8
+# pylint: disable=missing-docstring,invalid-name
+
 """
 Sanity checks that test helpers are actually doing what they should be doing.
 """

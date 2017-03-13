@@ -1,5 +1,9 @@
 # coding=utf8
 
+"""
+Simple wrapper around Whoosh Index that presents a simpler interface.
+"""
+
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
@@ -9,8 +13,9 @@ import os
 import sys
 import json
 import time
-import pytz
 from datetime import datetime
+
+import pytz
 
 import six
 from six.moves import map
@@ -22,6 +27,7 @@ from whoosh.sorting import Facets
 
 from knowhow.schema import SCHEMA, identifier
 import knowhow.util as util
+import knowhow.conf as conf
 
 
 class Index(object):
@@ -31,27 +37,38 @@ class Index(object):
     """
 
     def __init__(self, app_dir=None, index_dir=None):
-        self.app_dir = app_dir or util.get_app_dir()
-        self.index_dir = index_dir or util.get_data_dir(app_dir=self.app_dir)
-        self._ix = None
+        self.app_dir = app_dir or conf.get_app_dir()
+        self.index_dir = index_dir or conf.get_data_dir(app_dir=self.app_dir)
+        self._whoosh_index = None
 
     def open(self, clear=False):
+        """
+        Open this index and return the underlying whoosh index.
+
+        If `clear` is true, then a new index is created, which replaces
+        the existing index (and thus all existing data is lost).
+        """
         exists = os.path.exists(self.index_dir)
         if not exists or clear:
             if not exists:
                 os.makedirs(self.index_dir, mode=0o2755)
-            self._ix = create_in(self.index_dir, SCHEMA)
+            self._whoosh_index = create_in(self.index_dir, SCHEMA)
         else:
-            self._ix = open_dir(self.index_dir)
-        return self._ix
+            self._whoosh_index = open_dir(self.index_dir)
+        return self._whoosh_index
 
     @property
-    def ix(self):
-        if self._ix is not None:
-            return self._ix
-        return self.open(clear=False)
+    def _index(self):
+        """
+        The underlying whoosh index.
+        """
+        index = self._whoosh_index
+        if index is None:
+            index = self.open(clear=False)
+        return index
 
-    def _add(self, writer, **kwargs):
+    @staticmethod
+    def _add(writer, **kwargs):
         assert 'text' not in kwargs
         _no_update = kwargs.pop('_no_update', False)
         kwargs['id'] = identifier(kwargs)
@@ -63,54 +80,84 @@ class Index(object):
         kwargs['text'] = ' '.join(text)
         if not _no_update:
             kwargs['updated'] = datetime.now(pytz.utc)
-        kwargs = dict((k, util.decode(strip(kwargs[k]))) for k in kwargs)
+        kwargs = dict((k, util.decode(util.strip(kwargs[k]))) for k in kwargs)
         writer.update_document(**kwargs)
 
     def add(self, **kwargs):
+        """
+        Add document provided fields as kwargs.
+        """
         assert 'text' not in kwargs
-        with self.ix.writer() as writer:
-            self._add(writer, **kwargs)
+        with self._index.writer() as writer:
+            Index._add(writer, **kwargs)
 
     def add_all(self, docs):
-        with self.ix.writer() as writer:
+        """
+        Add multiple documents using provided iterable of doc dicts.
+        """
+        with self._index.writer() as writer:
             for doc in docs:
-                self._add(writer, **doc)
+                Index._add(writer, **doc)
 
     def remove(self, *ids):
+        """
+        Remove documents using provided identifiers.
+        """
         num_removed = 0
-        with self.ix.writer() as writer:
-            for id_ in ids:
-                num_removed += writer.delete_by_term('id', id_)
+        if ids:
+            with self._index.writer() as writer:
+                for id_ in ids:
+                    num_removed += writer.delete_by_term('id', id_)
         return num_removed
 
-    def parse(self, qs):
-        return QueryParser('text', self.ix.schema).parse(qs)
+    def parse(self, qs):  # pylint: disable=invalid-name
+        """
+        Parse given string query, returning a whoosh `Query`.
+        """
+        return QueryParser('text', self._index.schema).parse(qs)
 
-    def _search(self, q, **kw):
-        assert isinstance(q, Query)
-        return Search(self.ix.searcher(), q, **kw)
+    def search(self, query, **kw):  # pylint: disable=invalid-name
+        """
+        Search index using given query, passing `kw` to whoosh search.
 
-    def search(self, qs, **kw):
-        return self._search(self.parse(qs), **kw)
+        The `query` may be a query string or a query object.
+
+        Returns a `knowhow.index.Search` object.
+        """
+        if not isinstance(query, Query):
+            query = self.parse(query)
+        return Search(self._index.searcher(), query, **kw)
+
+    @staticmethod
+    def _to_doc(docfields):
+        doc = {}
+        for key in docfields:
+            value = docfields[key]
+            key = util.decode(key)
+            if isinstance(value, list):
+                value = list(map(util.decode, value))
+            else:
+                value = util.decode(value)
+            if key == 'tag' and not isinstance(value, list):
+                value = [value]
+            doc[key] = value
+        return doc
 
     def __iter__(self):
-        with self.ix.reader() as reader:
-            for docnum, docfiles in reader.iter_docs():
-                doc = {}
-                for k in docfiles:
-                    v = docfiles[k]
-                    if isinstance(k, six.binary_type):
-                        k = k.decode('utf8')
-                    if isinstance(v, six.binary_type):
-                        v = v.decode('utf8')
-                    elif isinstance(v, list):
-                        v = [_v.decode('utf8')
-                             if isinstance(_v, six.binary_type)
-                             else _v for _v in v]
-                    doc[k] = v
-                yield doc
+        """
+        Generator over all documents in index.
+        """
+        with self._index.reader() as reader:
+            for _docnum, docfields in reader.iter_docs():
+                yield Index._to_doc(docfields)
 
     def get_tags(self, prefix=None):
+        """
+        Get list of tags in this index.
+
+        If `prefix` is not None, it should be a string that will be used
+        to limit the tags returned to those that start with that prefix.
+        """
         facets = Facets()
         facets.add_field('tag', allow_overlap=True)
         with self.search('*:*', groupedby=facets) as result:
@@ -121,44 +168,59 @@ class Index(object):
         return tags
 
     def dump(self, fh):
+        """
+        Dump this index to given file handle as a JSON array, one doc per line.
+        """
         # poor-man's json serialization, printing the enclosing container
         # manually and dumping each doc individually
         needs_ascii = util.needs_ascii(fh)
         fh.write('[')
-        try:
-            count = 0
-            for doc in self:
-                fh.write(',\n' if count else '\n')
-                json.dump(doc, fh, default=util.json_serializer,
-                          ensure_ascii=needs_ascii, sort_keys=True)
-                count += 1
-        finally:
-            fh.write('\n]')
+        count = 0
+        for doc in self:
+            fh.write(',\n' if count else '\n')
+            json.dump(doc, fh, default=util.json_serializer,
+                      ensure_ascii=needs_ascii, sort_keys=True)
+            count += 1
+        fh.write('\n]')
 
     def pprint(self, fh=None):
+        """
+        Pretty-print all docs in this index to given file handle (or stdout).
+        """
         if fh is None:
             fh = sys.stdout
         for doc in self:
             print('id:', doc['id'], file=fh)
             print('tag:', ', '.join(doc['tag']), file=fh)
             timestr = (util.utc_to_local(doc['updated'])
-                           .strftime('%Y-%m-%d %H:%M:%S'))
+                       .strftime('%Y-%m-%d %H:%M:%S'))
             print('updated: %s' % timestr, file=fh)
             print(doc['content'], file=fh)
             print('\n', file=fh)
 
     def load(self, fh):
+        """
+        Load docs from file handle, expecting a JSON array of docs.
+        """
         # 'fh' contains a JSON list of docs
-        with self.ix.writer() as writer:
+        with self._index.writer() as writer:
             for doc in json.load(fh):
-                doc['updated'] = util.parse_datetime(doc['updated'])
-                self._add(writer, _no_update=True, **doc)
+                doc = Index._to_doc(doc)
+                if 'updated' in doc:
+                    doc['updated'] = util.parse_datetime(doc['updated'])
+                Index._add(writer, _no_update=True, **doc)
 
     def clear(self):
+        """
+        Clear this index, removing any existing documents.
+        """
         self.open(clear=True)
 
     def last_modified(self, localize=False):
-        dt = datetime.utcfromtimestamp(self.ix.last_modified())
+        """
+        Get last modification date of this index as a datetime value.
+        """
+        dt = datetime.utcfromtimestamp(self._index.last_modified())
         if localize:
             # avoid using 'datetime.timezone', which is not available in py2
             epoch = time.mktime(dt.timetuple())
@@ -168,11 +230,12 @@ class Index(object):
         return dt
 
     def __len__(self):
-        with self.ix.reader() as reader:
+        """The number of documents in this index."""
+        with self._index.reader() as reader:
             return reader.doc_count()
 
 
-@six.python_2_unicode_compatible
+@six.python_2_unicode_compatible  # pylint: disable=too-few-public-methods
 class Search(object):
 
     """
@@ -182,28 +245,29 @@ class Search(object):
     by that method), and index resources are released upon `__exit__`.
     """
 
-    def __init__(self, searcher, q, **kw):
+    def __init__(self, searcher, query, **kw):
         assert searcher is not None
-        assert q is not None
+        assert query is not None
         self._searcher = searcher
-        self._q = q
+        self._query = query
         self._kw = kw
+        self._results = None
 
     def __enter__(self):
         self._searcher.__enter__()
-        self._results = self._searcher.search(self._q, **self._kw)
+        self._results = self._searcher.search(self._query, **self._kw)
         return Results(self._results, self)
 
     def __exit__(self, *exc_info):
         self._searcher.__exit__(*exc_info)
 
     def __repr__(self):
-        return '<Search (q=%r)>' % self._q
+        return '<Search (query="%s")>' % str(self._query)
 
     __str__ = __repr__
 
 
-@six.python_2_unicode_compatible
+@six.python_2_unicode_compatible  # pylint: disable=too-few-public-methods
 class Results(object):
 
     """
@@ -219,22 +283,28 @@ class Results(object):
     def __len__(self):
         return len(self._results)
 
-    def __getitem__(self, n):
+    def __getitem__(self, n):  # pylint: disable=invalid-name
         return Result(self._results[n])
 
     def __iter__(self):
         return map(Result, self._results)
 
-    def __bool__(self):
-        return bool(self._results)
+    def __bool__(self):  # PY3
+        return bool(self._results)  # PY3
 
     def groups(self):
+        """
+        Get copy of groups dict for this results object.
+        """
         return dict(self._results.groups())
 
     def __repr__(self):
-        return '<Results (count=%d, search=%r)>' % (len(self), self._search)
+        return '<Results (count=%d, search=%s)>' % (len(self), self._search)
 
     __str__ = __repr__
+
+    if six.PY2:
+        __nonzero__ = __bool__
 
 
 @six.python_2_unicode_compatible
@@ -248,12 +318,8 @@ class Result(object):
 
     @property
     def fields(self):
+        """The fields for this result."""
         return self._hit.fields()
-
-    def __eq__(self, other):
-        if not isinstance(other, Result):
-            return False
-        return self.fields == other.fields
 
     def __len__(self):
         return len(self.fields)
@@ -268,18 +334,12 @@ class Result(object):
         return key in self.fields
 
     def __repr__(self):
-        return six.u('<Result (%s)>' % str(self.fields))
+        return '<Result (%s)>' % str(self.fields)
 
     __str__ = __repr__
 
     def get(self, field, default=None):
+        """
+        Get value of field, optionally using `default`.
+        """
         return self.fields.get(field, default)
-
-
-def strip(val):
-    if isinstance(val, six.string_types):
-        return val.strip()
-    try:
-        return list(filter(None, map(strip, val)))
-    except TypeError:
-        return val

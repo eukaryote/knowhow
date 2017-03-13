@@ -5,12 +5,10 @@
 
 Usage:
   pprint
-  pprint (-h | --help)
-  pprint --version
+  pprint -h | --help
 
 Options:
   -h --help             Show this screen.
-  --version             Show version.
 """
 
 from __future__ import absolute_import
@@ -22,14 +20,14 @@ import sys
 
 from docopt import docopt
 
-import knowhow
 from knowhow.index import Index
 
 
-def main(args):
+def main(_args):
+    """Run 'pprint' main, pretty printing index to stdout."""
     Index().pprint(fh=sys.stdout)
     return 0
 
+
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version=knowhow.__version__)
-    sys.exit(main(arguments))
+    sys.exit(main(docopt(__doc__)))

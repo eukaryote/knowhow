@@ -1,27 +1,23 @@
 # coding=utf8
 
+"""
+Misc utilities.
+"""
+
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import os
-from os.path import exists
-import sys
+from datetime import datetime
+
 import pytz
 import pytz.reference
-from datetime import datetime
 
 import six
 
-from six.moves.configparser import NoSectionError, NoOptionError
-try:
-    from six.moves.configparser import SafeConfigParser as ConfigParser
-except ImportError:  # py3
-    from.six.moves.configparser import ConfigParser
 
-
-iso_date_format = '%Y-%m-%dT%H:%M:%S.%f+00:00'
+ISO_DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f+00:00'
 
 
 def decode(obj):
@@ -38,7 +34,10 @@ def decode(obj):
     return obj
 
 
-def encode(obj, ascii=False):
+def encode(obj, ascii=False):  # pylint: disable=redefined-builtin
+    """
+    Encode the object arg as ascii (unicode-escaped) if `ascii` true or utf8.
+    """
     if isinstance(obj, six.text_type):
         obj = obj.encode('unicode-escape' if ascii else 'utf8')
     return obj
@@ -56,15 +55,15 @@ def needs_ascii(fh):
 
 
 def json_serializer(val):
+    """A JSON `default` helper function for serializing datetimes."""
     return val.isoformat() if isinstance(val, datetime) else val
 
 
 def parse_datetime(val):
-    if not val:
-        return val
-    d = datetime.strptime(val, iso_date_format)
-    d = d.replace(tzinfo=pytz.utc)
-    return d
+    """
+    Parse datetime string in `ISO_DATE_FORMAT` and return a datetime value.
+    """
+    return datetime.strptime(val, ISO_DATE_FORMAT).replace(tzinfo=pytz.utc)
 
 
 def utc_to_local(dt):
@@ -78,39 +77,16 @@ def utc_to_local(dt):
     return dt.replace(tzinfo=local_timezone)
 
 
-def get_app_dir(platform=None):
-    path = os.environ.get('KNOWHOW_HOME')
-    if path:
-        return path
-    elif (platform or sys.platform) == 'win32':
-        return os.path.join(os.environ['APPDATA'], 'knowhow')
-    else:  # *nix...
-        return os.path.join(os.environ['HOME'], '.knowhow')
+def strip(val):
+    """
+    Strip val, which may be str or iterable of str.
 
-
-def get_config(app_dir=None, platform=None):
-    conf = ConfigParser()
-    path = os.environ.get('KNOWHOW_CONF')
-    if not path:
-        if not app_dir:
-            app_dir = get_app_dir(platform=platform)
-        assert app_dir
-        path = os.path.join(app_dir, 'knowhow.ini')
-    if exists(path):
-        conf.read(path)
-    return conf
-
-
-def get_data_dir(app_dir=None, platform=None):
-    path = os.environ.get('KNOWHOW_DATA')
-    if path:
-        return path
-    # if no env var given, then try to load from config file
-    if not app_dir:
-        app_dir = get_app_dir(platform=platform)
-    config = get_config(app_dir=app_dir)
+    For str input, returns stripped string, and for iterable input,
+    returns list of str values without empty str (after strip) values.
+    """
+    if isinstance(val, six.string_types):
+        return val.strip()
     try:
-        path = config.get('main', 'data')  # no fallback kwarg in py2
-    except (NoSectionError, NoOptionError):
-        path = None
-    return path if path else os.path.join(app_dir, 'data')
+        return list(filter(None, map(strip, val)))
+    except TypeError:
+        return val

@@ -1,3 +1,7 @@
+# coding=utf8
+# pylint: disable=missing-docstring,invalid-name,redefined-variable-type
+# pylint: disable=redefined-outer-name
+
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
@@ -28,17 +32,16 @@ def tmpd(request):
 @pytest.fixture
 def conf():
     try:
-        conf = configparser.SafeConfigParser()
+        c = configparser.SafeConfigParser()
     except AttributeError:
-        conf = configparser.ConfigParser()
-    conf.add_section('main')
-    conf.set('main', 'data', util.decode('/app/data'))
-    return conf
+        c = configparser.ConfigParser()
+    c.add_section('main')
+    c.set('main', 'data', util.decode('/app/data'))
+    return c
 
 
 @pytest.fixture
 def conf_path(conf, tmpd):
-    print('conf: %s' % conf)
     path = join(tmpd, 'knowhow.ini')
     with open(path, 'w') as f:
         conf.write(f)
@@ -62,7 +65,7 @@ def tmp_app_index_dirs(tmp_app_index_dir_paths):
 
 @pytest.fixture
 def index_empty(request, tmp_app_index_dirs):
-    tmpd, app_dir, index_dir = tmp_app_index_dirs
+    _, app_dir, index_dir = tmp_app_index_dirs
 
     orig_home = os.environ.get('KNOWHOW_HOME')
     orig_data = os.environ.get('KNOWHOW_DATA')

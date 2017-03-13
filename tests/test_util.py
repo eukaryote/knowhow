@@ -1,4 +1,5 @@
 # coding=utf8
+# pylint: disable=missing-docstring,invalid-name
 
 from __future__ import absolute_import
 from __future__ import print_function
@@ -6,9 +7,11 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import sys
-from os.path import join, dirname
 from datetime import datetime
+
 import pytz
+
+import pytest
 
 import six
 try:
@@ -17,8 +20,6 @@ except ImportError:
     import mock
 
 import knowhow.util as util
-
-from tests import env
 
 
 def test_decode_nonstr():
@@ -41,6 +42,13 @@ def test_decode_utf8():
     assert s == 'चतरस'
 
 
+def test_decode_iso88591():
+    bs = 'café'.encode('iso-8859-1')
+    with pytest.raises(UnicodeDecodeError):
+        bs.decode('utf8')
+    assert util.decode(bs) == 'café'
+
+
 def test_encode_nonstr():
     assert util.encode(0) == 0
 
@@ -51,46 +59,6 @@ def test_encode_ascii():
 
 def test_encode_utf8():
     assert util.encode('café', False) == 'café'.encode('utf8')
-
-
-def test_get_app_dir_env_set():
-    path = '/app'
-    with env(KNOWHOW_HOME=path):
-        assert util.get_app_dir() == path
-
-
-def test_get_app_dir_windows():
-    appdata = r'C:\\Users\\Foo\\AppData\\Roaming'
-    expected = join(appdata, 'knowhow')
-    with env(APPDATA=appdata):
-        assert util.get_app_dir(platform='win32') == expected
-
-
-def test_get_app_dir_other():
-    for platform in ['linux', 'cygwin', 'darwin']:
-        home = '/home/foo'
-        expected = join(home, '.knowhow')
-        with env(HOME=home):
-            assert util.get_app_dir(platform=platform) == expected
-
-
-def test_get_config_env_set(conf_path):
-    with env(KNOWHOW_CONF=conf_path):
-        conf = util.get_config()
-        assert conf.get('main', 'data') == '/app/data'
-
-
-def test_get_data_dir_env_set():
-    path = '/data'
-    with env(KNOWHOW_DATA=path):
-        assert util.get_data_dir() == path
-
-
-def test_get_data_dir_env_unset(conf_path):
-    conf_dir = dirname(conf_path)
-    with env(KNOWHOW_DATA=None, KNOWHOW_HOME=conf_dir):
-        assert util.get_data_dir() == '/app/data'
-        assert util.get_data_dir(app_dir=conf_dir) == '/app/data'
 
 
 def test_parsedatetime_utc():

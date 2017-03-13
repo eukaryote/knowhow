@@ -4,13 +4,12 @@
 """Search knowhow for entries matching tags and/or content keywords.
 
 Usage:
-  search [-t TAG|--tag=TAG] [KEYWORD]...
-  search (-h | --help)
-  search --version
+  search KEYWORD...
+  search -t TAG|--tag=TAG [KEYWORD]...
+  search -h | --help
 
 Options:
   -h --help           Show this screen.
-  --version           Show version.
   -t TAG, --tag=TAG   Search for snippets tagged with TAG.
 """
 
@@ -22,34 +21,37 @@ from __future__ import division
 import sys
 from docopt import docopt
 
-import knowhow
 from knowhow.index import Index
 from whoosh.query import And, Term
 
 
 def main(args):
-    tag_query, keyword_query = None, None
+    """Run 'search' main, searching index and showing results on stdout."""
+    index = Index()
+    tag_query = keyword_query = None
+
     if args.get('--tag'):
         tags = [s.strip() for s in args['--tag'].split(',')]
         terms = [Term('tag', s) for s in tags if s]
         if terms:
             tag_query = And(terms)
-    index = Index()
+
     if args.get('KEYWORD'):
         keyword_query = index.parse(' '.join(kw for kw in args['KEYWORD']))
+
     if keyword_query:
-        search = index._search(keyword_query, filter=tag_query)
+        search = index.search(keyword_query, filter=tag_query)
     else:
         assert tag_query  # at least one should have been required by docopt
-        search = index._search(tag_query)
+        search = index.search(tag_query)
+
     with search as results:
         for result in results:
-            fs = result.fields
-            print('[%s]: %s' % (','.join(fs['tag']), fs['content']))
+            fields = result.fields
+            print('[%s]: %s' % (','.join(fields['tag']), fields['content']))
 
     return 0
 
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version=knowhow.__version__)
-    sys.exit(main(arguments))
+    sys.exit(main(docopt(__doc__)))

@@ -5,8 +5,10 @@
 
 Usage:
   remove ID...
-  remove (-h | --help)
-  remove --version
+  remove -h | --help
+
+Options:
+  -h --help           Show this screen.
 """
 
 from __future__ import absolute_import
@@ -18,16 +20,15 @@ import sys
 
 from docopt import docopt
 
-import knowhow
 from knowhow.index import Index
 
 
 def main(args):
+    """Run 'remove' main, removing documents from index by ID."""
     num_removed = Index().remove(*args['ID'])
     print('removed %d entries' % num_removed)
     return 0
 
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version=knowhow.__version__)
-    sys.exit(main(arguments))
+    sys.exit(main(docopt(__doc__)))
