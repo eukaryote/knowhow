@@ -4,11 +4,11 @@
 """Print tags with one or more results, optionally restricted by tag prefix.
 
 Usage:
-  tags
-  tags <prefix>
+  tags [-c | --counts] [<prefix>]
   tags -h | --help
 
 Options:
+  -c --counts           Show counts for each tag.
   -h --help             Show this screen.
 """
 
@@ -26,8 +26,13 @@ from knowhow.index import Index
 
 def main(args):
     """Run 'tags' main, showing tags defined for index."""
-    for tag in Index().get_tags(prefix=args.get('<prefix>')):
-        print(tag)
+    counts = args.get('--counts')
+    prefix = args.get('<prefix>')
+    for elem in Index().get_tags(prefix=prefix, counts=counts):
+        if counts:
+            print(*elem)
+        else:
+            print(elem)
     return 0
 
 

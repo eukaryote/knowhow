@@ -151,20 +151,26 @@ class Index(object):
             for _docnum, docfields in reader.iter_docs():
                 yield Index._to_doc(docfields)
 
-    def get_tags(self, prefix=None):
+    def get_tags(self, prefix=None, counts=False):
         """
-        Get list of tags in this index.
+        Get list of tags or (count,tag) in this index.
 
         If `prefix` is not None, it should be a string that will be used
         to limit the tags returned to those that start with that prefix.
+
+        If `counts` is true, the result is a list of tuples containing
+        the number of documents for that tag and the tag value.
         """
         facets = Facets()
         facets.add_field('tag', allow_overlap=True)
+        prefix = prefix or ''
         with self.search('*:*', groupedby=facets) as result:
-            tags = list(result.groups().keys())
-        if prefix:
-            tags = [t for t in tags if t.startswith(prefix)]
-        tags.sort()
+            tag_docs = result.groups()  # tag => [docid]
+            tags = list(key for key in tag_docs if key.startswith(prefix))
+            tags.sort()  # ascending by tag name
+            if counts:
+                tags = [(len(tag_docs[tag]), tag) for tag in tags]
+                tags.sort(key=lambda pair: pair[0], reverse=True)
         return tags
 
     def dump(self, fh):

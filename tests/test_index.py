@@ -10,8 +10,6 @@ import datetime
 from os.path import exists, join
 import json
 
-from whoosh.query import Query
-
 from knowhow import util
 from knowhow.index import Index, Results
 
@@ -272,6 +270,31 @@ def test_index_get_tags_prefix(index_one):
     assert index_one.get_tags(prefix='m') == ['mytag0']
     assert index_one.get_tags(prefix='mytag0') == ['mytag0']
     assert index_one.get_tags(prefix='ytag') == []
+
+
+def test_index_get_tags_with_counts(index_one):
+    docs = [
+        {'tag': 'mytag2', 'content': 'doc1'},
+        {'tag': 'mytag1', 'content': 'doc2'},
+        {'tag': 'mytag0', 'content': 'doc3'},
+        {'tag': 'mytag4', 'content': 'doc4'},
+        {'tag': 'mytag3', 'content': 'doc5'},
+        {'tag': 'testtag0', 'content': 'doc6'},
+    ]
+    index_one.add_all(docs)
+    expected = [
+        (2, 'mytag0'),
+        (1, 'mytag1'),
+        (1, 'mytag2'),
+        (1, 'mytag3'),
+        (1, 'mytag4'),
+        (1, 'testtag0'),
+    ]
+    assert index_one.get_tags(counts=True) == expected
+
+    expected.pop()
+    assert index_one.get_tags(prefix='mytag', counts=True) == expected
+
 
 
 def test_index_pprint_default(capsys, index_one):
