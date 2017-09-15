@@ -20,6 +20,8 @@ try:
 except ImportError:  # PY2
     from.six.moves.configparser import ConfigParser   # PY2
 
+PYTHON2 = sys.version_info < (3,)
+
 
 def get_app_dir(platform=None):
     """
