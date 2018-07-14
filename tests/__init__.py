@@ -1,5 +1,4 @@
 # coding=utf8
-# pylint: disable=missing-docstring,invalid-name
 
 from __future__ import absolute_import
 from __future__ import print_function
@@ -13,22 +12,22 @@ from contextlib import contextmanager
 import six
 
 test_doc0 = {
-    'tag': 'mytag0',
-    'content': 'mycontent0',
-    'updated': datetime.datetime.now()
+    "tag": "mytag0",
+    "content": "mycontent0",
+    "updated": datetime.datetime.now(),
 }
 
 test_doc1 = {
-    'tag': 'mytag1',
-    'content': 'mycontent1',
-    'updated': datetime.datetime.now()
+    "tag": "mytag1",
+    "content": "mycontent1",
+    "updated": datetime.datetime.now(),
 }
 
 test_doc_dumped = {
-    'content': 'mycontent',
-    'tag': ['mytag'],
-    'id': 'c8afdb36c52cf4727836669019e69222',
-    'updated': '2014-05-04T14:20:12.824058+00:00'
+    "content": "mycontent",
+    "tag": ["mytag"],
+    "id": "c8afdb36c52cf4727836669019e69222",
+    "updated": "2014-05-04T14:20:12.824058+00:00",
 }
 
 

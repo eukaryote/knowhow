@@ -17,21 +17,16 @@ import whoosh.fields as F
 
 # This scheme defines the structure of a single knowhow snippet.
 SCHEMA = F.Schema(
-
     # unique identifier
     id=F.ID(unique=True, stored=True),
-
     # a multi-valued analyzed field
     tag=F.KEYWORD(stored=True, field_boost=2.0),
-
     # the text content of the snippet
     content=F.TEXT(stored=True),
-
     # all searchable fields, for use as a default field
     text=F.TEXT(stored=False),
-
     # when the snippet was last modified
-    updated=F.DATETIME(stored=True)
+    updated=F.DATETIME(stored=True),
 )
 
 # Function to create a hasher object for generating id of a snippet.
@@ -50,5 +45,5 @@ def identifier(doc):
     different tags is equivalent to just updating the tags of the existing
     document, which is the desired behavior.
     """
-    data = doc.get('content').strip().encode('utf-8')
+    data = doc.get("content").strip().encode("utf-8")
     return IdGenerator(data).hexdigest()

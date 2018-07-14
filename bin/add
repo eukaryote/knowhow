@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
+# vim: set ft=python: fileencoding=utf8
 
 """Add (or update) an entry, optionally with one or more tags.
 
@@ -31,22 +31,19 @@ from knowhow.index import Index
 def parse_tags(val):
     """Parse tags str, splitting on comma and filtering empty."""
     if val is not None:
-        tokens = (s.strip() for s in val.split(','))
+        tokens = (s.strip() for s in val.split(","))
         return filter(None, tokens)
 
 
 def main(args):
     """Run 'add' main, adding document to index."""
-    if args['TEXT'] == ['-']:
+    if args["TEXT"] == ["-"]:
         content = sys.stdin.read()
     else:
-        content = ' '.join(filter(None, args['TEXT']))
-    Index().add(
-        tag=list(parse_tags(args['--tag'])),
-        content=content
-    )
+        content = " ".join(filter(None, args["TEXT"]))
+    Index().add(tag=list(parse_tags(args["--tag"])), content=content)
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main(docopt(__doc__)))

@@ -1,0 +1,4 @@
+[run]
+branch = True
+omit = tests/*
+data_file = /tmp/knowhow.coverage

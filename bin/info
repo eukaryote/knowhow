@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
+# vim: set ft=python: fileencoding=utf8
 
 """Show information about the knowhow index.
 
@@ -26,20 +26,20 @@ from knowhow.index import Index
 def print_overview(index):
     """Print overview of index to stdout."""
     _ix = index.ix
-    print('Index:', _ix.storage.folder)
-    print('Last updated:', index.last_modified(localize=True))
-    print('Repo size: %d snippet(s)' % _ix.doc_count())
+    print("Index:", _ix.storage.folder)
+    print("Last updated:", index.last_modified(localize=True))
+    print("Repo size: %d snippet(s)" % _ix.doc_count())
     print()
 
 
 def print_details(index):
     """Print details of index to stdout."""
     with index.ix.reader() as reader:
-        tags = (t.decode('utf-8') for t in reader.lexicon('tag'))
-        print('tags:', ', '.join(tags))
-        print('most frequent tags:')
-        for count, term in reader.most_frequent_terms('tag'):
-            print('  {0}: {1}'.format(int(count), term.decode('utf-8')))
+        tags = (t.decode("utf-8") for t in reader.lexicon("tag"))
+        print("tags:", ", ".join(tags))
+        print("most frequent tags:")
+        for count, term in reader.most_frequent_terms("tag"):
+            print("  {0}: {1}".format(int(count), term.decode("utf-8")))
 
 
 def main(_args):
@@ -50,5 +50,5 @@ def main(_args):
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main(docopt(__doc__)))

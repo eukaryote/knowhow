@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
+# vim: set ft=python: fileencoding=utf8
 
 """Upgrade an existing index to the latest index format.
 
@@ -28,11 +28,11 @@ def main(_args):
     index = Index()
     changes = index.upgrade()
     if changes:
-        print('Index upgraded: reindexed %d items' % (changes,))
+        print("Index upgraded: reindexed %d items" % (changes,))
     else:
         print("Index already at latest version.")
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main(docopt(__doc__)))

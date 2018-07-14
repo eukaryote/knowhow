@@ -27,6 +27,14 @@ from whoosh.sorting import Facets
 
 from knowhow import conf, schema, util
 
+# patch whoosh with necessary changes; this happens here rather
+# than in __init__.py to avoid import errors when __init__.py
+# is imported from setup.py
+from .util import monkeypatch
+
+monkeypatch()
+del monkeypatch
+
 
 class Index(object):
     """
@@ -67,23 +75,23 @@ class Index(object):
 
     @staticmethod
     def _add(writer, **kwargs):
-        assert 'text' not in kwargs
-        _no_update = kwargs.pop('_no_update', False)
-        if not kwargs.get('id'):
-            kwargs['id'] = schema.identifier(kwargs)
+        assert "text" not in kwargs
+        _no_update = kwargs.pop("_no_update", False)
+        if not kwargs.get("id"):
+            kwargs["id"] = schema.identifier(kwargs)
         text = []
-        if 'tag' in kwargs:
-            tags = kwargs['tag']
+        if "tag" in kwargs:
+            tags = kwargs["tag"]
             if not isinstance(tags, (list, tuple)):
-                tags = tags.split(',')
+                tags = tags.split(",")
             tags = list(filter(None, [t.strip() for t in tags]))
             text.extend(tags * 4)  # include in text, and weight high
-            kwargs['tag'] = tags
-        if 'content' in kwargs:
-            text.append(kwargs['content'].strip())
-        kwargs['text'] = ' '.join(text)
+            kwargs["tag"] = tags
+        if "content" in kwargs:
+            text.append(kwargs["content"].strip())
+        kwargs["text"] = " ".join(text)
         if not _no_update:
-            kwargs['updated'] = datetime.now(pytz.utc)
+            kwargs["updated"] = datetime.now(pytz.utc)
         kwargs = dict((k, util.decode(util.strip(kwargs[k]))) for k in kwargs)
         writer.update_document(**kwargs)
 
@@ -91,7 +99,7 @@ class Index(object):
         """
         Add document provided fields as kwargs.
         """
-        assert 'text' not in kwargs
+        assert "text" not in kwargs
         with self._index.writer() as writer:
             Index._add(writer, **kwargs)
 
@@ -111,16 +119,16 @@ class Index(object):
         if ids:
             with self._index.writer() as writer:
                 for id_ in ids:
-                    num_removed += writer.delete_by_term('id', id_)
+                    num_removed += writer.delete_by_term("id", id_)
         return num_removed
 
-    def parse(self, qs):  # pylint: disable=invalid-name
+    def parse(self, qs):
         """
         Parse given string query, returning a whoosh `Query`.
         """
-        return QueryParser('text', self._index.schema).parse(qs)
+        return QueryParser("text", self._index.schema).parse(qs)
 
-    def search(self, query, **kw):  # pylint: disable=invalid-name
+    def search(self, query, **kw):
         """
         Search index using given query, passing `kw` to whoosh search.
 
@@ -142,7 +150,7 @@ class Index(object):
                 value = list(map(util.decode, value))
             else:
                 value = util.decode(value)
-            if key == 'tag' and not isinstance(value, list):
+            if key == "tag" and not isinstance(value, list):
                 value = [value]
             doc[key] = value
         return doc
@@ -166,9 +174,9 @@ class Index(object):
         the number of documents for that tag and the tag value.
         """
         facets = Facets()
-        facets.add_field('tag', allow_overlap=True)
-        prefix = prefix or ''
-        with self.search('*:*', groupedby=facets) as result:
+        facets.add_field("tag", allow_overlap=True)
+        prefix = prefix or ""
+        with self.search("*:*", groupedby=facets) as result:
             tag_docs = result.groups()  # tag => [docid]
             tags = list(key for key in tag_docs if key.startswith(prefix))
             tags.sort()  # ascending by tag name
@@ -184,14 +192,19 @@ class Index(object):
         # poor-man's json serialization, printing the enclosing container
         # manually and dumping each doc individually
         needs_ascii = util.needs_ascii(fh)
-        fh.write('[')
+        fh.write("[")
         count = 0
         for doc in self:
-            fh.write(',\n' if count else '\n')
-            json.dump(doc, fh, default=util.json_serializer,
-                      ensure_ascii=needs_ascii, sort_keys=True)
+            fh.write(",\n" if count else "\n")
+            json.dump(
+                doc,
+                fh,
+                default=util.json_serializer,
+                ensure_ascii=needs_ascii,
+                sort_keys=True,
+            )
             count += 1
-        fh.write('\n]')
+        fh.write("\n]")
 
     def pprint(self, fh=None):
         """
@@ -200,13 +213,12 @@ class Index(object):
         if fh is None:
             fh = sys.stdout
         for doc in self:
-            print('id:', doc['id'], file=fh)
-            print('tag:', ', '.join(doc['tag']), file=fh)
-            timestr = (util.utc_to_local(doc['updated'])
-                       .strftime('%Y-%m-%d %H:%M:%S'))
-            print('updated: %s' % timestr, file=fh)
-            print(doc['content'], file=fh)
-            print('\n', file=fh)
+            print("id:", doc["id"], file=fh)
+            print("tag:", ", ".join(doc["tag"]), file=fh)
+            timestr = util.utc_to_local(doc["updated"]).strftime("%Y-%m-%d %H:%M:%S")
+            print("updated: %s" % timestr, file=fh)
+            print(doc["content"], file=fh)
+            print("\n", file=fh)
 
     def load(self, fh):
         """
@@ -216,8 +228,8 @@ class Index(object):
         with self._index.writer() as writer:
             for doc in json.load(fh):
                 doc = Index._to_doc(doc)
-                if 'updated' in doc:
-                    doc['updated'] = util.parse_datetime(doc['updated'])
+                if "updated" in doc:
+                    doc["updated"] = util.parse_datetime(doc["updated"])
                 Index._add(writer, _no_update=True, **doc)
 
     def clear(self):
@@ -234,8 +246,7 @@ class Index(object):
         if localize:
             # avoid using 'datetime.timezone', which is not available in py2
             epoch = time.mktime(dt.timetuple())
-            offset = (datetime.fromtimestamp(epoch) -
-                      datetime.utcfromtimestamp(epoch))
+            offset = datetime.fromtimestamp(epoch) - datetime.utcfromtimestamp(epoch)
             dt = dt + offset
         return dt
 
@@ -254,15 +265,15 @@ class Index(object):
         with self._index.writer() as writer:
             with self._index.reader() as reader:
                 for docnum, docfields in reader.iter_docs():
-                    if len(docfields['id']) != schema.ID_LENGTH:
-                        docfields['id'] = schema.identifier(docfields)
+                    if len(docfields["id"]) != schema.ID_LENGTH:
+                        docfields["id"] = schema.identifier(docfields)
                         writer.delete_document(docnum)
                         self._add(writer, **docfields)
                         changed += 1
         return changed
 
 
-@six.python_2_unicode_compatible  # pylint: disable=too-few-public-methods
+@six.python_2_unicode_compatible
 class Search(object):
 
     """
@@ -294,7 +305,7 @@ class Search(object):
     __str__ = __repr__
 
 
-@six.python_2_unicode_compatible  # pylint: disable=too-few-public-methods
+@six.python_2_unicode_compatible
 class Results(object):
 
     """
@@ -310,7 +321,7 @@ class Results(object):
     def __len__(self):
         return len(self._results)
 
-    def __getitem__(self, n):  # pylint: disable=invalid-name
+    def __getitem__(self, n):
         return Result(self._results[n])
 
     def __iter__(self):
@@ -326,7 +337,7 @@ class Results(object):
         return dict(self._results.groups())
 
     def __repr__(self):
-        return '<Results (count=%d, search=%s)>' % (len(self), self._search)
+        return "<Results (count=%d, search=%s)>" % (len(self), self._search)
 
     __str__ = __repr__
 
@@ -362,12 +373,14 @@ class Result(object):
 
     def __format__(self, spec):
         fields = self.fields
-        return spec.format(id=fields['id'],
-                           tags=','.join(fields.get('tag', [])),
-                           content=fields['content'])
+        return spec.format(
+            id=fields["id"],
+            tags=",".join(fields.get("tag", [])),
+            content=fields["content"],
+        )
 
     def __repr__(self):
-        return '<Result (%s)>' % str(self.fields)
+        return "<Result (%s)>" % str(self.fields)
 
     __str__ = __repr__
 

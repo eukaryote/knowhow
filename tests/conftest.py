@@ -1,6 +1,4 @@
 # coding=utf8
-# pylint: disable=missing-docstring,invalid-name,redefined-variable-type
-# pylint: disable=redefined-outer-name
 
 from __future__ import absolute_import
 from __future__ import print_function
@@ -35,23 +33,23 @@ def conf():
         c = configparser.SafeConfigParser()
     except AttributeError:
         c = configparser.ConfigParser()
-    c.add_section('main')
-    c.set('main', 'data', util.decode('/app/data'))
+    c.add_section("main")
+    c.set("main", "data", util.decode("/app/data"))
     return c
 
 
 @pytest.fixture
 def conf_path(conf, tmpd):
-    path = join(tmpd, 'knowhow.ini')
-    with open(path, 'w') as f:
+    path = join(tmpd, "knowhow.ini")
+    with open(path, "w") as f:
         conf.write(f)
     return path
 
 
 @pytest.fixture
 def tmp_app_index_dir_paths(tmpd):
-    app_dir = join(tmpd, 'app')
-    index_dir = join(tmpd, 'index')
+    app_dir = join(tmpd, "app")
+    index_dir = join(tmpd, "index")
     return tmpd, app_dir, index_dir
 
 
@@ -67,17 +65,17 @@ def tmp_app_index_dirs(tmp_app_index_dir_paths):
 def index_empty(request, tmp_app_index_dirs):
     _, app_dir, index_dir = tmp_app_index_dirs
 
-    orig_home = os.environ.get('KNOWHOW_HOME')
-    orig_data = os.environ.get('KNOWHOW_DATA')
+    orig_home = os.environ.get("KNOWHOW_HOME")
+    orig_data = os.environ.get("KNOWHOW_DATA")
 
     def restore():
-        setenv('KNOWHOW_HOME', orig_home)
-        setenv('KNOWHOW_DATA', orig_data)
+        setenv("KNOWHOW_HOME", orig_home)
+        setenv("KNOWHOW_DATA", orig_data)
 
     request.addfinalizer(restore)
 
-    os.environ['KNOWHOW_HOME'] = app_dir
-    os.environ['KNOWHOW_DATA'] = index_dir
+    os.environ["KNOWHOW_HOME"] = app_dir
+    os.environ["KNOWHOW_DATA"] = index_dir
     index = Index(app_dir=app_dir, index_dir=index_dir)
     index.open(clear=True)
     return index
